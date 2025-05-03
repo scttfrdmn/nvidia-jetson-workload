@@ -26,7 +26,35 @@ The Python implementation is located in the `python/` directory and consists of 
 
 ### Running the Python Version
 
-To run the Python implementation on a Jetson device:
+#### Using a Virtual Environment
+
+The Python implementation requires Python 3.10+ and should be run in a virtual environment:
+
+```bash
+# Create and activate a virtual environment
+python -m venv .venv
+source .venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the simulation
+python -m src.nbody_sim.python.cli
+```
+
+#### Using Containerized Version
+
+The containerized version provides a consistent environment across all systems:
+
+```bash
+# Build the container
+singularity build nbody-sim.sif containers/nbody-sim.def
+
+# Run the container
+singularity run nbody-sim.sif --system-type galaxy --num-particles 10000
+```
+
+#### Command-line Options
 
 ```bash
 # Basic run with default settings

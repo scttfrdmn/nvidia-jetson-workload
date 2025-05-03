@@ -145,6 +145,31 @@ Each commit must represent a complete, validated change:
    git push origin main
    ```
 
+## Development Environment
+
+### Python Environment
+- Use Python 3.10+ for all Python workloads
+- Development should use virtual environments (venv):
+  ```bash
+  # Create a virtual environment
+  python -m venv .venv
+  
+  # Activate the environment
+  source .venv/bin/activate  # Linux/macOS
+  .venv\Scripts\activate     # Windows
+  
+  # Install dependencies
+  pip install -r requirements.txt
+  ```
+- Use pyenv for managing multiple Python versions during development
+- Testing should always occur in a clean virtual environment
+
+### Container Requirements
+- All workloads must be containerized for deployment
+- Use Docker for development and Singularity/Apptainer for Slurm deployment
+- Base container images should include all dependencies
+- Container must be compatible with both Jetson (ARM64) and AWS Graviton (ARM64)
+
 ## Cross-Compilation and Deployment
 
 All target systems are running Ubuntu 22.04.x:

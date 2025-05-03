@@ -1,0 +1,81 @@
+Bootstrap: docker
+From: nvcr.io/nvidia/l4t-pytorch:r35.2.1-pth2.0-py3
+
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2024 nvidia-jetson-workload contributors
+
+%labels
+    AUTHOR NVIDIA Jetson Workload Contributors
+    VERSION 0.1.0
+    DESCRIPTION N-body simulation workload for NVIDIA Jetson
+
+%help
+    N-body Gravitational Simulation Workload
+    
+    This container provides a gravitational N-body simulation designed
+    to run on NVIDIA Jetson devices with CUDA acceleration.
+    
+    Usage:
+        singularity run nbody-sim.sif [options]
+        
+    Options:
+        --system-type TYPE   Type of system (random, solar, galaxy)
+        --num-particles N    Number of particles to simulate
+        --duration SEC       Simulation duration in seconds
+        --dt STEP            Time step size
+        --integrator METHOD  Integration method (euler, leapfrog, verlet, rk4)
+        --output-dir DIR     Directory for output files
+        
+    Example:
+        singularity run nbody-sim.sif --system-type galaxy --num-particles 10000
+
+%environment
+    export PYTHONPATH=/opt/nvidia-jetson-workload:$PYTHONPATH
+    export LC_ALL=C.UTF-8
+    export LANG=C.UTF-8
+
+%files
+    # Copy project files into the container
+    . /opt/nvidia-jetson-workload
+
+%post
+    # Install system dependencies
+    apt-get update
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        cmake \
+        git \
+        python3-pip \
+        python3-dev \
+        python3-venv \
+        libopenmpi-dev
+
+    # Install Python dependencies from requirements.txt
+    pip3 install --upgrade pip
+    pip3 install --no-cache-dir -r /opt/nvidia-jetson-workload/requirements.txt
+
+    # Install additional visualization packages
+    pip3 install --no-cache-dir matplotlib seaborn
+
+    # Clean up
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
+
+    # Create output directory
+    mkdir -p /output
+    chmod 777 /output
+
+    # Make the run script executable
+    chmod +x /opt/nvidia-jetson-workload/src/nbody_sim/python/run_test.py
+    chmod +x /opt/nvidia-jetson-workload/src/nbody_sim/python/cli.py
+
+%runscript
+    cd /opt/nvidia-jetson-workload
+    exec python3 -m src.nbody_sim.python.cli --output-dir /output "$@"
+
+%test
+    cd /opt/nvidia-jetson-workload
+    python3 -c "import numpy; print(f'NumPy version: {numpy.__version__}')"
+    python3 -c "import torch; print(f'PyTorch version: {torch.__version__}')"
+    python3 -c "import torch; print(f'CUDA available: {torch.cuda.is_available()}')"
+    python3 -m src.nbody_sim.python.run_test.py --output-dir /tmp
