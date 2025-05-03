@@ -147,10 +147,14 @@ Each commit must represent a complete, validated change:
 
 ## Cross-Compilation and Deployment
 
+All target systems are running Ubuntu 22.04.x:
+- Slurm head node VM on Mac
+- All four Jetson Orin NX nodes
+
 Follow this process for testing on target devices:
 
 1. **Local Testing**: First validate all code on development machine
-2. **Cross-Compile**: Build for ARM + CUDA target
+2. **Cross-Compile**: Build for ARM + CUDA target on Ubuntu 22.04
 3. **Deploy**: Transfer to Jetson nodes
 4. **Test on Device**: Validate functionality on actual hardware
 5. **Benchmark**: Measure performance metrics
