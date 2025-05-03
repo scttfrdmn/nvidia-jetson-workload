@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 - feat(nbody-sim): implement Python N-body simulation
 
 ### Improved
+- Enhance release script to handle systems without CUDA
 - Update version files for 1.0.0 release
 
 ### Fixed

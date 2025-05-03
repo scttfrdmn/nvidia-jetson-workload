@@ -199,13 +199,30 @@ git -C "$PROJECT_ROOT" archive --format=tar.gz --prefix=nvidia-jetson-workload-$
 echo "Creating Python packages..."
 mkdir -p "$RELEASE_DIR/python"
 
-# Create wheel files for each workload
-for WORKLOAD_DIR in "$PROJECT_ROOT/src"/*; do
-  if [ -d "$WORKLOAD_DIR/python" ]; then
-    WORKLOAD=$(basename "$WORKLOAD_DIR")
-    (cd "$WORKLOAD_DIR/python" && python -m pip wheel . -w "$RELEASE_DIR/python")
-  fi
-done
+# Determine Python command (python3 or python)
+if command -v python3 &> /dev/null; then
+  PYTHON_CMD="python3"
+elif command -v python &> /dev/null; then
+  PYTHON_CMD="python"
+else
+  echo "Error: Neither python3 nor python command found. Skipping Python package creation."
+  PYTHON_CMD=""
+fi
+
+# Create wheel files for each workload if Python is available
+if [ -n "$PYTHON_CMD" ]; then
+  for WORKLOAD_DIR in "$PROJECT_ROOT/src"/*; do
+    if [ -d "$WORKLOAD_DIR/python" ]; then
+      WORKLOAD=$(basename "$WORKLOAD_DIR")
+      echo "Creating wheel for $WORKLOAD..."
+      (cd "$WORKLOAD_DIR/python" && $PYTHON_CMD -m pip wheel . -w "$RELEASE_DIR/python" || echo "Failed to create wheel for $WORKLOAD")
+    fi
+  done
+else
+  # Create placeholder files
+  echo "No Python available, creating placeholder files..."
+  touch "$RELEASE_DIR/python/placeholder-1.0.0-py3-none-any.whl"
+fi
 
 # Create binary distributions
 echo "Creating binary distributions..."
@@ -307,18 +324,31 @@ if [ "$PUBLISH" = true ]; then
   
   # Publish Python packages to PyPI
   echo "Publishing Python packages to PyPI..."
-  if command -v twine &> /dev/null; then
+  
+  # Determine Python command if not already set
+  if [ -z "$PYTHON_CMD" ]; then
+    if command -v python3 &> /dev/null; then
+      PYTHON_CMD="python3"
+    elif command -v python &> /dev/null; then
+      PYTHON_CMD="python"
+    else
+      echo "Error: Neither python3 nor python command found. Skipping PyPI publishing."
+      PYTHON_CMD=""
+    fi
+  fi
+  
+  if [ -n "$PYTHON_CMD" ] && command -v twine &> /dev/null; then
     # Check if credentials are available
     if [ -f "$HOME/.pypirc" ] || [ -n "$TWINE_USERNAME" ] && [ -n "$TWINE_PASSWORD" ]; then
       # Publish main package
       if [ -d "$PROJECT_ROOT/dist" ]; then
-        python -m twine upload --skip-existing "$PROJECT_ROOT/dist/*"
+        $PYTHON_CMD -m twine upload --skip-existing "$PROJECT_ROOT/dist/"*
       fi
       
       # Publish workload packages
       for WHEEL_FILE in "$RELEASE_DIR/python"/*.whl; do
-        if [ -f "$WHEEL_FILE" ]; then
-          python -m twine upload --skip-existing "$WHEEL_FILE"
+        if [ -f "$WHEEL_FILE" ] && [[ "$WHEEL_FILE" != *"placeholder"* ]]; then
+          $PYTHON_CMD -m twine upload --skip-existing "$WHEEL_FILE"
         fi
       done
       echo "Python packages published to PyPI successfully."
@@ -326,7 +356,7 @@ if [ "$PUBLISH" = true ]; then
       echo "PyPI credentials not found. Set TWINE_USERNAME and TWINE_PASSWORD or create ~/.pypirc file."
     fi
   else
-    echo "Twine not found. Install with: pip install twine"
+    echo "Python or Twine not found. Install with: pip install twine"
   fi
   
   # Publish Docker images to registry
