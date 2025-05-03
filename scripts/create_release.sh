@@ -164,10 +164,12 @@ fi
 
 # Insert new changelog entry after the header
 if [ "$(uname)" == "Darwin" ]; then
-  # macOS
-  sed -i '' -e "4i\\
-$CHANGELOG_ENTRY
-" "$CHANGELOG_FILE"
+  # macOS - create a temporary file with the new content
+  TEMP_CHANGELOG=$(mktemp)
+  head -n 3 "$CHANGELOG_FILE" > "$TEMP_CHANGELOG"
+  echo -e "$CHANGELOG_ENTRY" >> "$TEMP_CHANGELOG"
+  tail -n +4 "$CHANGELOG_FILE" >> "$TEMP_CHANGELOG"
+  mv "$TEMP_CHANGELOG" "$CHANGELOG_FILE"
 else
   # Linux
   sed -i -e "4i\\$CHANGELOG_ENTRY" "$CHANGELOG_FILE"
