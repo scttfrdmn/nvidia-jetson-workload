@@ -1,0 +1,142 @@
+name: Benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      workloads:
+        description: 'Workloads to benchmark (comma-separated or "all")'
+        required: false
+        default: 'all'
+        type: string
+      instance_type:
+        description: 'AWS instance type'
+        required: true
+        default: 'g5g.2xlarge'
+        type: choice
+        options:
+          - g5g.2xlarge
+          - g5g.4xlarge
+          - g5g.8xlarge
+      upload_results:
+        description: 'Upload results to S3 bucket'
+        required: false
+        default: true
+        type: boolean
+  schedule:
+    # Run weekly benchmarks on Sunday at 2 AM UTC
+    - cron: '0 2 * * 0'
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      workloads: ${{ steps.set-workloads.outputs.workloads }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Set workloads to benchmark
+        id: set-workloads
+        run: |
+          if [[ "${{ github.event.inputs.workloads || 'all' }}" == "all" ]]; then
+            WORKLOADS='["nbody_sim", "molecular_dynamics", "weather_sim", "medical_imaging"]'
+          else
+            # Convert comma-separated string to JSON array
+            IFS=',' read -ra WORKLOAD_ARRAY <<< "${{ github.event.inputs.workloads }}"
+            WORKLOADS="["
+            for i in "${!WORKLOAD_ARRAY[@]}"; do
+              if [[ $i -gt 0 ]]; then
+                WORKLOADS="$WORKLOADS, "
+              fi
+              WORKLOADS="$WORKLOADS\"${WORKLOAD_ARRAY[$i]}\""
+            done
+            WORKLOADS="$WORKLOADS]"
+          fi
+          echo "workloads=$WORKLOADS" >> $GITHUB_OUTPUT
+
+  run-benchmarks:
+    needs: prepare
+    runs-on: ${{ github.event.inputs.instance_type || 'g5g.2xlarge' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake build-essential libboost-all-dev
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+      
+      - name: Build project
+        run: |
+          ./build.sh
+      
+      - name: Run benchmarks
+        id: run-benchmarks
+        run: |
+          mkdir -p benchmark/results
+          
+          # Determine which workloads to benchmark
+          WORKLOADS_PARAM=""
+          for workload in $(echo '${{ needs.prepare.outputs.workloads }}' | jq -r '.[]'); do
+            if [[ "$workload" == "nbody_sim" ]]; then
+              WORKLOADS_PARAM="$WORKLOADS_PARAM --nbody"
+            elif [[ "$workload" == "molecular_dynamics" ]]; then
+              WORKLOADS_PARAM="$WORKLOADS_PARAM --md"
+            elif [[ "$workload" == "weather_sim" ]]; then
+              WORKLOADS_PARAM="$WORKLOADS_PARAM --weather"
+            elif [[ "$workload" == "medical_imaging" ]]; then
+              WORKLOADS_PARAM="$WORKLOADS_PARAM --medical"
+            fi
+          done
+          
+          # Run benchmarks
+          chmod +x benchmark/scripts/run_benchmarks.sh
+          benchmark/scripts/run_benchmarks.sh $WORKLOADS_PARAM
+          
+          # Set result path for next steps
+          RESULT_PATH=$(find benchmark/results -name "benchmark_report.html" | tail -n 1)
+          RESULTS_DIR=$(dirname "$RESULT_PATH")
+          echo "results_dir=$RESULTS_DIR" >> $GITHUB_OUTPUT
+      
+      - name: Upload benchmark results as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: benchmark-results
+          path: ${{ steps.run-benchmarks.outputs.results_dir }}
+      
+      - name: Upload to S3 bucket
+        if: ${{ github.event.inputs.upload_results != 'false' }}
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      
+      - name: Copy results to S3
+        if: ${{ github.event.inputs.upload_results != 'false' }}
+        run: |
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          INSTANCE_TYPE="${{ github.event.inputs.instance_type || 'g5g.2xlarge' }}"
+          S3_PATH="s3://${{ secrets.BENCHMARK_BUCKET }}/results/$TIMESTAMP-$INSTANCE_TYPE/"
+          
+          # Upload results to S3
+          aws s3 cp ${{ steps.run-benchmarks.outputs.results_dir }} $S3_PATH --recursive
+          
+          # Create index of benchmark results
+          aws s3 ls s3://${{ secrets.BENCHMARK_BUCKET }}/results/ --recursive | \
+            grep benchmark_report.html | \
+            sort -r | \
+            head -n 20 > latest_benchmarks.txt
+          
+          # Upload index
+          aws s3 cp latest_benchmarks.txt s3://${{ secrets.BENCHMARK_BUCKET }}/latest_benchmarks.txt
+          
+          echo "Benchmark results uploaded to $S3_PATH"
+          echo "View the latest results at https://${{ secrets.BENCHMARK_BUCKET }}.s3.amazonaws.com/index.html"

@@ -1,7 +1,7 @@
 # Container Definitions
 
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-<!-- Copyright 2024 nvidia-jetson-workload contributors -->
+<!-- Copyright 2025 Scott Friedman and Project Contributors -->
 
 This directory contains container definitions for the workloads.
 

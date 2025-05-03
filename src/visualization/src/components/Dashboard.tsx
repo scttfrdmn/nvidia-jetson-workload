@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2024 nvidia-jetson-workload contributors
+// Copyright 2025 Scott Friedman and Project Contributors
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -18,7 +18,8 @@ import {
   Info as InfoIcon,
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
-  HourglassFull as HourglassIcon
+  HourglassFull as HourglassIcon,
+  Speed as SpeedIcon
 } from '@mui/icons-material';
 
 import { useWorkload } from '../context/WorkloadContext';
@@ -204,7 +205,7 @@ const Dashboard = () => {
               <Divider sx={{ mb: 2 }} />
               
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={4}>
+                <Grid item xs={12} sm={6} md={3}>
                   <Card>
                     <CardContent>
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -231,7 +232,7 @@ const Dashboard = () => {
                   </Card>
                 </Grid>
                 
-                <Grid item xs={12} sm={4}>
+                <Grid item xs={12} sm={6} md={3}>
                   <Card>
                     <CardContent>
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -258,7 +259,7 @@ const Dashboard = () => {
                   </Card>
                 </Grid>
                 
-                <Grid item xs={12} sm={4}>
+                <Grid item xs={12} sm={6} md={3}>
                   <Card>
                     <CardContent>
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -280,6 +281,33 @@ const Dashboard = () => {
                         fullWidth
                       >
                         Launch
+                      </Button>
+                    </CardActions>
+                  </Card>
+                </Grid>
+
+                <Grid item xs={12} sm={6} md={3}>
+                  <Card>
+                    <CardContent>
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                        <SpeedIcon color="warning" fontSize="large" />
+                        <Typography variant="h6" sx={{ ml: 1 }}>
+                          Benchmarks
+                        </Typography>
+                      </Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Performance analysis and comparison of all workloads across different hardware configurations.
+                      </Typography>
+                    </CardContent>
+                    <CardActions>
+                      <Button 
+                        variant="contained" 
+                        color="warning"
+                        startIcon={<PlayArrowIcon />}
+                        onClick={() => navigate('/benchmarks')}
+                        fullWidth
+                      >
+                        View
                       </Button>
                     </CardActions>
                   </Card>

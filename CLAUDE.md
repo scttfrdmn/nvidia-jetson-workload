@@ -1,7 +1,7 @@
 # Claude Code Information for NVIDIA Jetson Workload
 
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-<!-- Copyright 2024 nvidia-jetson-workload contributors -->
+<!-- Copyright 2025 Scott Friedman and Project Contributors -->
 
 This file contains information for Claude Code to effectively assist with this project.
 

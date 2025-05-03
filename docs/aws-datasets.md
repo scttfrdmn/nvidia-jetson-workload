@@ -1,7 +1,7 @@
 # AWS Open Data Resources for Workloads
 
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-<!-- Copyright 2024 nvidia-jetson-workload contributors -->
+<!-- Copyright 2025 Scott Friedman and Project Contributors -->
 
 This document outlines the AWS Open Data resources selected for each workload type.
 

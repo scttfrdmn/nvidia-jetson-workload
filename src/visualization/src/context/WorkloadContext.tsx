@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2024 nvidia-jetson-workload contributors
+// Copyright 2025 Scott Friedman and Project Contributors
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import io from 'socket.io-client';
@@ -101,17 +101,44 @@ interface Node {
   powerUsage: number;
 }
 
+// Benchmark result type definitions
+interface DeviceCapabilities {
+  name: string;
+  compute_capability: string;
+  total_memory: number;
+  clock_rate: number;
+  num_multiprocessors: number;
+}
+
+interface BenchmarkResult {
+  workload_name: string;
+  device_name: string;
+  device_capabilities: DeviceCapabilities;
+  execution_time: number;
+  memory_usage: {
+    host: number;
+    device: number;
+  };
+  gpu_utilization: number | null;
+  energy_consumption: number | null;
+  throughput: number | null;
+  additional_metrics: Record<string, any>;
+  timestamp: string;
+}
+
 interface WorkloadContextType {
   workloads: Workload[];
   runningWorkloads: Workload[];
   completedWorkloads: Workload[];
   nodes: Node[];
+  benchmarkResults: BenchmarkResult[];
   isLoading: boolean;
   error: string | null;
   refreshData: () => void;
   launchWorkload: (type: 'weather' | 'medical' | 'nbody', config: any) => Promise<string>;
   cancelWorkload: (id: string) => Promise<boolean>;
   getWorkloadById: (id: string) => Workload | undefined;
+  refreshBenchmarkData: () => void;
 }
 
 const WorkloadContext = createContext<WorkloadContextType | undefined>(undefined);
@@ -127,6 +154,7 @@ const SOCKET_URL = 'http://localhost:5000';
 export const WorkloadProvider = ({ children }: WorkloadProviderProps) => {
   const [workloads, setWorkloads] = useState<Workload[]>([]);
   const [nodes, setNodes] = useState<Node[]>([]);
+  const [benchmarkResults, setBenchmarkResults] = useState<BenchmarkResult[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [socket, setSocket] = useState<any>(null);
@@ -177,6 +205,7 @@ export const WorkloadProvider = ({ children }: WorkloadProviderProps) => {
   // Fetch initial data
   useEffect(() => {
     refreshData();
+    refreshBenchmarkData();
   }, []);
 
   // Set up socket listeners for real-time updates
@@ -419,18 +448,245 @@ export const WorkloadProvider = ({ children }: WorkloadProviderProps) => {
     return workloads.find(w => w.id === id);
   };
 
+  // Function to refresh benchmark data
+  const refreshBenchmarkData = async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // In a real app, this would make an API call to fetch benchmark data
+      // For now, we'll use mock data
+      setTimeout(() => {
+        // Mock benchmark results
+        const mockBenchmarkResults: BenchmarkResult[] = [
+          {
+            workload_name: 'nbody_sim',
+            device_name: 'NVIDIA Jetson Orin NX',
+            device_capabilities: {
+              name: 'NVIDIA Jetson Orin NX',
+              compute_capability: '8.7',
+              total_memory: 16384,
+              clock_rate: 1000,
+              num_multiprocessors: 16
+            },
+            execution_time: 12.5,
+            memory_usage: {
+              host: 256,
+              device: 2048
+            },
+            gpu_utilization: 95.2,
+            energy_consumption: 350.75,
+            throughput: 80.0,
+            additional_metrics: {
+              num_particles: 10000,
+              num_steps: 1000,
+              interactions_per_second: 8.0e9
+            },
+            timestamp: '2025-01-15T12:30:45'
+          },
+          {
+            workload_name: 'nbody_sim',
+            device_name: 'NVIDIA T4',
+            device_capabilities: {
+              name: 'NVIDIA T4',
+              compute_capability: '7.5',
+              total_memory: 16384,
+              clock_rate: 1590,
+              num_multiprocessors: 40
+            },
+            execution_time: 4.8,
+            memory_usage: {
+              host: 312,
+              device: 2560
+            },
+            gpu_utilization: 97.5,
+            energy_consumption: 520.45,
+            throughput: 208.3,
+            additional_metrics: {
+              num_particles: 10000,
+              num_steps: 1000,
+              interactions_per_second: 2.1e10
+            },
+            timestamp: '2025-01-15T12:45:30'
+          },
+          {
+            workload_name: 'molecular_dynamics',
+            device_name: 'NVIDIA Jetson Orin NX',
+            device_capabilities: {
+              name: 'NVIDIA Jetson Orin NX',
+              compute_capability: '8.7',
+              total_memory: 16384,
+              clock_rate: 1000,
+              num_multiprocessors: 16
+            },
+            execution_time: 18.2,
+            memory_usage: {
+              host: 420,
+              device: 1800
+            },
+            gpu_utilization: 92.4,
+            energy_consumption: 410.35,
+            throughput: 54.9,
+            additional_metrics: {
+              num_atoms: 5000,
+              num_steps: 1000,
+              interactions_per_second: 1.37e9
+            },
+            timestamp: '2025-01-15T13:15:10'
+          },
+          {
+            workload_name: 'molecular_dynamics',
+            device_name: 'NVIDIA T4',
+            device_capabilities: {
+              name: 'NVIDIA T4',
+              compute_capability: '7.5',
+              total_memory: 16384,
+              clock_rate: 1590,
+              num_multiprocessors: 40
+            },
+            execution_time: 7.1,
+            memory_usage: {
+              host: 480,
+              device: 2240
+            },
+            gpu_utilization: 96.8,
+            energy_consumption: 610.25,
+            throughput: 140.8,
+            additional_metrics: {
+              num_atoms: 5000,
+              num_steps: 1000,
+              interactions_per_second: 3.52e9
+            },
+            timestamp: '2025-01-15T13:30:22'
+          },
+          {
+            workload_name: 'weather_sim',
+            device_name: 'NVIDIA Jetson Orin NX',
+            device_capabilities: {
+              name: 'NVIDIA Jetson Orin NX',
+              compute_capability: '8.7',
+              total_memory: 16384,
+              clock_rate: 1000,
+              num_multiprocessors: 16
+            },
+            execution_time: 21.5,
+            memory_usage: {
+              host: 850,
+              device: 3200
+            },
+            gpu_utilization: 94.7,
+            energy_consumption: 490.85,
+            throughput: 46.5,
+            additional_metrics: {
+              grid_size: 512,
+              num_steps: 1000,
+              grid_points_per_second: 1.22e7
+            },
+            timestamp: '2025-01-15T14:10:05'
+          },
+          {
+            workload_name: 'weather_sim',
+            device_name: 'NVIDIA T4',
+            device_capabilities: {
+              name: 'NVIDIA T4',
+              compute_capability: '7.5',
+              total_memory: 16384,
+              clock_rate: 1590,
+              num_multiprocessors: 40
+            },
+            execution_time: 8.6,
+            memory_usage: {
+              host: 920,
+              device: 4096
+            },
+            gpu_utilization: 98.1,
+            energy_consumption: 720.55,
+            throughput: 116.3,
+            additional_metrics: {
+              grid_size: 512,
+              num_steps: 1000,
+              grid_points_per_second: 3.05e7
+            },
+            timestamp: '2025-01-15T14:25:35'
+          },
+          {
+            workload_name: 'medical_imaging_ct_reconstruction',
+            device_name: 'NVIDIA Jetson Orin NX',
+            device_capabilities: {
+              name: 'NVIDIA Jetson Orin NX',
+              compute_capability: '8.7',
+              total_memory: 16384,
+              clock_rate: 1000,
+              num_multiprocessors: 16
+            },
+            execution_time: 15.3,
+            memory_usage: {
+              host: 760,
+              device: 2800
+            },
+            gpu_utilization: 93.8,
+            energy_consumption: 380.45,
+            throughput: 0.65,
+            additional_metrics: {
+              image_size: 512,
+              num_iterations: 10,
+              num_angles: 180,
+              method: 'FilteredBackProjection'
+            },
+            timestamp: '2025-01-15T15:05:15'
+          },
+          {
+            workload_name: 'medical_imaging_ct_reconstruction',
+            device_name: 'NVIDIA T4',
+            device_capabilities: {
+              name: 'NVIDIA T4',
+              compute_capability: '7.5',
+              total_memory: 16384,
+              clock_rate: 1590,
+              num_multiprocessors: 40
+            },
+            execution_time: 5.9,
+            memory_usage: {
+              host: 840,
+              device: 3500
+            },
+            gpu_utilization: 97.2,
+            energy_consumption: 560.30,
+            throughput: 1.69,
+            additional_metrics: {
+              image_size: 512,
+              num_iterations: 10,
+              num_angles: 180,
+              method: 'FilteredBackProjection'
+            },
+            timestamp: '2025-01-15T15:20:40'
+          }
+        ];
+        
+        setBenchmarkResults(mockBenchmarkResults);
+        setIsLoading(false);
+      }, 500);
+    } catch (err) {
+      console.error('Error fetching benchmark data:', err);
+      setError('Failed to fetch benchmark data from server');
+      setIsLoading(false);
+    }
+  };
+
   // Context value
   const value = {
     workloads,
     runningWorkloads,
     completedWorkloads,
     nodes,
+    benchmarkResults,
     isLoading,
     error,
     refreshData,
     launchWorkload,
     cancelWorkload,
-    getWorkloadById
+    getWorkloadById,
+    refreshBenchmarkData
   };
 
   return (

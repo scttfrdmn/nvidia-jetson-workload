@@ -1,6 +1,6 @@
 #!/bin/bash
 # SPDX-License-Identifier: Apache-2.0
-# Copyright 2024 nvidia-jetson-workload contributors
+# Copyright 2025 Scott Friedman and Project Contributors
 
 # This script sets up SSH keys for passwordless login to the Jetson cluster
 

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright 2024 nvidia-jetson-workload contributors
+# Copyright 2025 Scott Friedman and Project Contributors
 
 # Use NVIDIA's L4T PyTorch image as base for ARM compatibility
 FROM nvcr.io/nvidia/l4t-pytorch:r35.2.1-pth2.0-py3

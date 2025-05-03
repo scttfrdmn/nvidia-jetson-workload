@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-# Copyright 2024 nvidia-jetson-workload contributors
+# Copyright 2025 Scott Friedman and Project Contributors
 
 """
 Script to submit N-body simulation jobs to Slurm.
