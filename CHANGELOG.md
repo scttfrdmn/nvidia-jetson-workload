@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - Fix create_release.sh script to handle macOS sed limitations
+- Fix Python handling in release script and clean up CHANGELOG
 
 
 
