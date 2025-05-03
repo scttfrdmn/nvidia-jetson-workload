@@ -1,0 +1,118 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2024 nvidia-jetson-workload contributors
+
+syntax = "proto3";
+
+package nvidia.jetson.workload.weather;
+
+import "common.proto";
+
+// Configuration for the weather simulation
+message WeatherSimConfig {
+  // Base workload configuration
+  nvidia.jetson.workload.WorkloadConfig base_config = 1;
+  
+  // Grid dimensions
+  int32 grid_size_x = 2;
+  int32 grid_size_y = 3;
+  int32 grid_size_z = 4;
+  
+  // Physical size of domain in meters
+  double domain_size_x = 5;
+  double domain_size_y = 6;
+  double domain_size_z = 7;
+  
+  // Simulation time step in seconds
+  double time_step = 8;
+  
+  // Total simulation time in seconds
+  double total_simulation_time = 9;
+  
+  // Atmospheric conditions
+  double initial_temperature = 10; // in Kelvin
+  double pressure = 11; // in Pascal
+  double humidity = 12; // 0.0 to 1.0
+  
+  // Wind speed in m/s
+  double initial_wind_speed_x = 13;
+  double initial_wind_speed_y = 14;
+  double initial_wind_speed_z = 15;
+  
+  // Terrain complexity (0-1)
+  double terrain_complexity = 16;
+  
+  // Whether to simulate precipitation
+  bool simulate_precipitation = 17;
+  
+  // Whether to include solar radiation effects
+  bool include_solar_radiation = 18;
+  
+  // Resolution of output data (can be downsampled)
+  int32 output_resolution_x = 19;
+  int32 output_resolution_y = 20;
+  int32 output_resolution_z = 21;
+}
+
+// Single cell of atmospheric data
+message AtmosphericCell {
+  double temperature = 1; // in Kelvin
+  double pressure = 2; // in Pascal
+  double humidity = 3; // 0.0 to 1.0
+  double wind_velocity_x = 4; // in m/s
+  double wind_velocity_y = 5; // in m/s
+  double wind_velocity_z = 6; // in m/s
+  double precipitation_rate = 7; // in mm/hr
+  double cloud_density = 8; // 0.0 to 1.0
+}
+
+// A slice of the atmospheric data at a specific height
+message AtmosphericSlice {
+  int32 z_level = 1;
+  repeated AtmosphericCell cells = 2;
+  int32 width = 3;
+  int32 height = 4;
+}
+
+// Weather simulation results
+message WeatherSimResult {
+  // Base workload result
+  nvidia.jetson.workload.WorkloadResult base_result = 1;
+  
+  // Configuration used for simulation
+  WeatherSimConfig config = 2;
+  
+  // Simulation time in seconds
+  double simulation_time = 3;
+  
+  // 2D slices of atmospheric data at various heights
+  repeated AtmosphericSlice atmospheric_slices = 4;
+  
+  // Summary statistics
+  double max_temperature = 5;
+  double min_temperature = 6;
+  double max_wind_speed = 7;
+  double total_precipitation = 8;
+  
+  // Severe weather indicators
+  bool storm_detected = 9;
+  bool high_wind_warning = 10;
+  bool flooding_risk = 11;
+}
+
+// Streaming update during simulation
+message WeatherSimUpdate {
+  // ID of the simulation run
+  string run_id = 1;
+  
+  // Current simulation time
+  double current_time = 2;
+  
+  // Percentage complete
+  double percent_complete = 3;
+  
+  // Current state (single slice for visualization)
+  AtmosphericSlice current_slice = 4;
+  
+  // Performance metrics at this point
+  nvidia.jetson.workload.PerformanceMetrics current_metrics = 5;
+}

@@ -1,0 +1,89 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2024 nvidia-jetson-workload contributors
+
+syntax = "proto3";
+
+package nvidia.jetson.workload;
+
+// Common message for performance metrics across all workloads
+message PerformanceMetrics {
+  // Total execution time in milliseconds
+  double total_time_ms = 1;
+  
+  // GPU memory usage in megabytes
+  double gpu_memory_mb = 2;
+  
+  // CPU memory usage in megabytes
+  double cpu_memory_mb = 3;
+  
+  // GPU utilization percentage (0-100)
+  double gpu_utilization = 4;
+  
+  // CPU utilization percentage (0-100)
+  double cpu_utilization = 5;
+  
+  // Power consumption in watts
+  double power_consumption_watts = 6;
+  
+  // Temperature in celsius
+  double temperature_celsius = 7;
+  
+  // Operations per second (workload specific)
+  double operations_per_second = 8;
+  
+  // Breakdown of time spent in different stages
+  map<string, double> time_breakdown_ms = 9;
+}
+
+// Common message for workload configuration
+message WorkloadConfig {
+  // Unique ID for this workload run
+  string run_id = 1;
+  
+  // Name of the workload
+  string workload_name = 2;
+  
+  // Version of the workload
+  string version = 3;
+  
+  // Timestamp when the workload started
+  int64 timestamp = 4;
+  
+  // Node on which the workload is running
+  string node_name = 5;
+  
+  // Whether to collect performance metrics
+  bool collect_metrics = 6;
+  
+  // Whether to generate visualization data
+  bool generate_visualization = 7;
+  
+  // Additional workload-specific parameters
+  map<string, string> parameters = 8;
+}
+
+// Common result status
+enum Status {
+  SUCCESS = 0;
+  ERROR = 1;
+  IN_PROGRESS = 2;
+  CANCELLED = 3;
+}
+
+// Base result message that all workloads extend
+message WorkloadResult {
+  // Configuration used for this workload run
+  WorkloadConfig config = 1;
+  
+  // Performance metrics from the run
+  PerformanceMetrics metrics = 2;
+  
+  // Status of the workload execution
+  Status status = 3;
+  
+  // Error message if status is ERROR
+  string error_message = 4;
+  
+  // Type of workload (for message type identification)
+  string workload_type = 5;
+}

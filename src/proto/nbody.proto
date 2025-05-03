@@ -1,0 +1,171 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2024 nvidia-jetson-workload contributors
+
+syntax = "proto3";
+
+package nvidia.jetson.workload.nbody;
+
+import "common.proto";
+
+// Configuration for N-body simulation
+message NBodyConfig {
+  // Base workload configuration
+  nvidia.jetson.workload.WorkloadConfig base_config = 1;
+  
+  // Number of particles in the simulation
+  int32 num_particles = 2;
+  
+  // Simulation time step in seconds
+  double time_step = 3;
+  
+  // Total simulation time in seconds
+  double total_simulation_time = 4;
+  
+  // Gravitational constant (G)
+  double gravitational_constant = 5;
+  
+  // Damping factor for stability
+  double damping_factor = 6;
+  
+  // Softening factor to prevent singularities
+  double softening_factor = 7;
+  
+  // Initial distribution type
+  enum DistributionType {
+    RANDOM = 0;
+    DISK = 1;
+    SPHERE = 2;
+    GALAXY = 3;
+    CLUSTER = 4;
+    CUSTOM = 5;
+  }
+  DistributionType initial_distribution = 8;
+  
+  // Size of the simulation space
+  double space_size = 9;
+  
+  // Integration algorithm
+  enum IntegrationAlgorithm {
+    EULER = 0;
+    VERLET = 1;
+    LEAPFROG = 2;
+    RK4 = 3;
+  }
+  IntegrationAlgorithm integration_algorithm = 10;
+  
+  // Whether particles have different masses
+  bool variable_masses = 11;
+  
+  // Mass range
+  double min_mass = 12;
+  double max_mass = 13;
+  
+  // Whether to include collisions
+  bool handle_collisions = 14;
+  
+  // Whether to track energy conservation
+  bool track_energy = 15;
+  
+  // Block size for CUDA calculations
+  int32 cuda_block_size = 16;
+}
+
+// Single particle in the N-body simulation
+message Particle {
+  // Unique ID
+  int32 id = 1;
+  
+  // Mass
+  double mass = 2;
+  
+  // Position
+  double position_x = 3;
+  double position_y = 4;
+  double position_z = 5;
+  
+  // Velocity
+  double velocity_x = 6;
+  double velocity_y = 7;
+  double velocity_z = 8;
+  
+  // Acceleration
+  double acceleration_x = 9;
+  double acceleration_y = 10;
+  double acceleration_z = 11;
+}
+
+// Simulation state at a particular time
+message SimulationState {
+  // Current simulation time
+  double time = 1;
+  
+  // Particles state
+  repeated Particle particles = 2;
+  
+  // Total energy in the system
+  double total_energy = 3;
+  
+  // Kinetic energy
+  double kinetic_energy = 4;
+  
+  // Potential energy
+  double potential_energy = 5;
+  
+  // Angular momentum
+  double angular_momentum_x = 6;
+  double angular_momentum_y = 7;
+  double angular_momentum_z = 8;
+  
+  // Center of mass
+  double center_of_mass_x = 9;
+  double center_of_mass_y = 10;
+  double center_of_mass_z = 11;
+}
+
+// Nbody simulation results
+message NBodyResult {
+  // Base workload result
+  nvidia.jetson.workload.WorkloadResult base_result = 1;
+  
+  // Configuration used for simulation
+  NBodyConfig config = 2;
+  
+  // Final simulation state
+  SimulationState final_state = 3;
+  
+  // Initial simulation state (for comparison)
+  SimulationState initial_state = 4;
+  
+  // Statistics
+  double energy_conservation_error = 5;
+  double momentum_conservation_error = 6;
+  double average_step_time_ms = 7;
+  int32 total_steps = 8;
+  
+  // System metrics at various scales
+  double maximum_velocity = 9;
+  double maximum_acceleration = 10;
+  double system_radius = 11;
+}
+
+// Streaming update during simulation
+message NBodyUpdate {
+  // ID of the simulation run
+  string run_id = 1;
+  
+  // Current simulation time
+  double current_time = 2;
+  
+  // Percentage complete
+  double percent_complete = 3;
+  
+  // Downsampled particles for visualization
+  // (may not include all particles for performance)
+  repeated Particle visualization_particles = 4;
+  
+  // Current energy conservation error
+  double current_energy_error = 5;
+  
+  // Performance metrics at this point
+  nvidia.jetson.workload.PerformanceMetrics current_metrics = 6;
+}

@@ -1,0 +1,140 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2024 nvidia-jetson-workload contributors
+
+syntax = "proto3";
+
+package nvidia.jetson.workload.medical;
+
+import "common.proto";
+
+// Type of medical imaging being processed
+enum ImagingType {
+  MRI = 0;
+  CT = 1;
+  ULTRASOUND = 2;
+  XRAY = 3;
+  PET = 4;
+}
+
+// Configuration for medical image processing
+message MedicalImageConfig {
+  // Base workload configuration
+  nvidia.jetson.workload.WorkloadConfig base_config = 1;
+  
+  // Type of imaging
+  ImagingType imaging_type = 2;
+  
+  // Image dimensions
+  int32 width = 3;
+  int32 height = 4;
+  int32 depth = 5; // For 3D scans, 1 for 2D
+  
+  // Number of images in the dataset
+  int32 dataset_size = 6;
+  
+  // Model configuration for AI segmentation
+  string model_name = 7;
+  
+  // Tasks to perform
+  bool perform_segmentation = 8;
+  bool perform_classification = 9;
+  bool perform_registration = 10;
+  bool perform_enhancement = 11;
+  bool perform_reconstruction = 12;
+  
+  // Input file format
+  string input_format = 13;
+  
+  // Target structures to identify
+  repeated string target_structures = 14;
+  
+  // Batch size for processing
+  int32 batch_size = 15;
+  
+  // Preprocessing steps
+  bool apply_noise_reduction = 16;
+  bool apply_normalization = 17;
+  bool apply_bias_correction = 18;
+}
+
+// Segmentation result for a single structure
+message SegmentationResult {
+  string structure_name = 1;
+  
+  // Volume or area
+  double volume_mm3 = 2;
+  
+  // Confidence score (0-1)
+  double confidence = 3;
+  
+  // Binary mask encoded as bytes
+  bytes mask_data = 4;
+  
+  // Dimensions of the mask
+  int32 mask_width = 5;
+  int32 mask_height = 6;
+  int32 mask_depth = 7;
+  
+  // Bounding box coordinates
+  int32 bbox_x = 8;
+  int32 bbox_y = 9;
+  int32 bbox_z = 10;
+  int32 bbox_width = 11;
+  int32 bbox_height = 12;
+  int32 bbox_depth = 13;
+}
+
+// Classification result
+message ClassificationResult {
+  string label = 1;
+  double probability = 2;
+  repeated string differential_diagnoses = 3;
+  repeated double differential_probabilities = 4;
+}
+
+// Medical imaging processing results
+message MedicalImageResult {
+  // Base workload result
+  nvidia.jetson.workload.WorkloadResult base_result = 1;
+  
+  // Configuration used for processing
+  MedicalImageConfig config = 2;
+  
+  // Segmentation results per structure
+  repeated SegmentationResult segmentations = 3;
+  
+  // Classification results
+  ClassificationResult classification = 4;
+  
+  // Quantitative measurements
+  map<string, double> measurements = 5;
+  
+  // Processing statistics
+  int32 images_processed = 6;
+  double average_processing_time_per_image_ms = 7;
+  double segmentation_accuracy = 8;
+  double classification_accuracy = 9;
+  
+  // Thumbnail of processed result (low-res preview)
+  bytes result_thumbnail = 10;
+  int32 thumbnail_width = 11;
+  int32 thumbnail_height = 12;
+}
+
+// Streaming update during processing
+message MedicalImageUpdate {
+  // ID of the processing run
+  string run_id = 1;
+  
+  // Current progress
+  int32 images_processed = 2;
+  double percent_complete = 3;
+  
+  // Current image being processed (thumbnail)
+  bytes current_thumbnail = 4;
+  int32 thumbnail_width = 5;
+  int32 thumbnail_height = 6;
+  
+  // Performance metrics at this point
+  nvidia.jetson.workload.PerformanceMetrics current_metrics = 7;
+}

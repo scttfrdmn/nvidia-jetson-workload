@@ -1,0 +1,59 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2024 nvidia-jetson-workload contributors
+
+# Core Python packages
+numpy>=1.23.0
+scipy>=1.9.0
+matplotlib>=3.6.0
+pandas>=1.5.0
+
+# CUDA acceleration libraries
+cupy-cuda12x>=12.0.0
+numba>=0.56.0
+pycuda>=2022.1
+
+# Protocol Buffers
+protobuf>=4.22.0
+
+# Web API for visualization frontend
+flask>=2.2.0
+flask-cors>=3.0.0
+flask-socketio>=5.3.0
+gunicorn>=21.0.0
+
+# Medical Imaging specific
+nibabel>=4.0.0  # Medical image I/O
+SimpleITK>=2.2.0  # Medical image processing
+opencv-python>=4.7.0  # Image processing
+torch>=2.0.0  # Deep learning
+torchvision>=0.15.0  # Computer vision models
+monai>=1.2.0  # Medical imaging deep learning
+
+# Weather simulation specific
+xarray>=2023.1.0  # N-D labeled arrays
+netCDF4>=1.6.0  # NetCDF file format
+cfgrib>=0.9.10  # GRIB file format
+cartopy>=0.21.0  # Geospatial data processing
+
+# N-body simulation specific
+astropy>=5.2.0  # Astronomy utilities
+yt>=4.1.0  # Volumetric data analysis
+h5py>=3.8.0  # HDF5 file handling
+
+# Testing and development
+pytest>=7.3.0
+black>=23.3.0
+isort>=5.12.0
+mypy>=1.2.0
+ruff>=0.0.262
+
+# Slurm integration
+python-hostlist>=1.23  # For parsing Slurm host lists
+PyYAML>=6.0  # Config file parsing
+
+# Utilities
+tqdm>=4.65.0  # Progress bars
+pyzmq>=25.0.0  # Message queues
+psutil>=5.9.0  # System monitoring
+click>=8.1.0  # Command line interfaces
+rich>=13.3.0  # Terminal formatting
