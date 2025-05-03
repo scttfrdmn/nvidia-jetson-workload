@@ -216,8 +216,18 @@ fi
 
 # Create wheel files for each workload if Python is available
 if [ -n "$PYTHON_CMD" ]; then
+  # Check for externally managed environment and add appropriate flags
+  if $PYTHON_CMD -c "import sys; sys.exit(1 if hasattr(sys, 'externally_managed_environment') and sys.externally_managed_environment else 0)" 2>/dev/null; then
+    # Not an externally managed environment
+    PIP_ARGS=""
+  else
+    # Externally managed environment (PEP 668)
+    echo "Detected externally managed Python environment, adding --break-system-packages flag"
+    PIP_ARGS="--break-system-packages"
+  fi
+
   # Install build dependencies first
-  $PYTHON_CMD -m pip install --upgrade pip wheel setuptools build || echo "Warning: Failed to install build dependencies"
+  $PYTHON_CMD -m pip install $PIP_ARGS --upgrade pip wheel setuptools build || echo "Warning: Failed to install build dependencies"
   
   # Try to create wheels but don't fail the script if they fail
   for WORKLOAD_DIR in "$PROJECT_ROOT/src"/*; do
@@ -225,10 +235,10 @@ if [ -n "$PYTHON_CMD" ]; then
       WORKLOAD=$(basename "$WORKLOAD_DIR")
       echo "Creating wheel for $WORKLOAD..."
       if [ -f "$WORKLOAD_DIR/python/requirements.txt" ]; then
-        $PYTHON_CMD -m pip install -r "$WORKLOAD_DIR/python/requirements.txt" || echo "Warning: Could not install requirements for $WORKLOAD"
+        $PYTHON_CMD -m pip install $PIP_ARGS -r "$WORKLOAD_DIR/python/requirements.txt" || echo "Warning: Could not install requirements for $WORKLOAD"
       fi
       
-      (cd "$WORKLOAD_DIR/python" && $PYTHON_CMD -m pip wheel . -w "$RELEASE_DIR/python" || {
+      (cd "$WORKLOAD_DIR/python" && $PYTHON_CMD -m pip wheel $PIP_ARGS . -w "$RELEASE_DIR/python" || {
         echo "Failed to create wheel for $WORKLOAD, creating placeholder instead"
         # Create a placeholder wheel file if building fails
         touch "$RELEASE_DIR/python/$WORKLOAD-1.0.0-py3-none-any.whl.placeholder"
@@ -360,26 +370,53 @@ if [ "$PUBLISH" = true ]; then
     fi
   fi
   
-  if [ -n "$PYTHON_CMD" ] && command -v twine &> /dev/null; then
-    # Check if credentials are available
-    if [ -f "$HOME/.pypirc" ] || [ -n "$TWINE_USERNAME" ] && [ -n "$TWINE_PASSWORD" ]; then
-      # Publish main package
-      if [ -d "$PROJECT_ROOT/dist" ]; then
-        $PYTHON_CMD -m twine upload --skip-existing "$PROJECT_ROOT/dist/"*
-      fi
-      
-      # Publish workload packages
-      for WHEEL_FILE in "$RELEASE_DIR/python"/*.whl; do
-        if [ -f "$WHEEL_FILE" ] && [[ "$WHEEL_FILE" != *"placeholder"* ]]; then
-          $PYTHON_CMD -m twine upload --skip-existing "$WHEEL_FILE"
-        fi
-      done
-      echo "Python packages published to PyPI successfully."
+  # Check/set PIP_ARGS if not already set
+  if [ -n "$PYTHON_CMD" ] && [ -z "$PIP_ARGS" ]; then
+    if $PYTHON_CMD -c "import sys; sys.exit(1 if hasattr(sys, 'externally_managed_environment') and sys.externally_managed_environment else 0)" 2>/dev/null; then
+      # Not an externally managed environment
+      PIP_ARGS=""
     else
-      echo "PyPI credentials not found. Set TWINE_USERNAME and TWINE_PASSWORD or create ~/.pypirc file."
+      # Externally managed environment (PEP 668)
+      echo "Detected externally managed Python environment, adding --break-system-packages flag"
+      PIP_ARGS="--break-system-packages"
+    fi
+  fi
+  
+  if [ -n "$PYTHON_CMD" ]; then
+    # Install twine if not already available
+    if ! command -v twine &> /dev/null; then
+      echo "Installing twine..."
+      $PYTHON_CMD -m pip install $PIP_ARGS twine || {
+        echo "Failed to install twine. PyPI publishing will be skipped."
+        TWINE_AVAILABLE=false
+      }
+    else
+      TWINE_AVAILABLE=true
+    fi
+    
+    if [ "$TWINE_AVAILABLE" = true ] || command -v twine &> /dev/null; then
+      # Check if credentials are available
+      if [ -f "$HOME/.pypirc" ] || [ -n "$TWINE_USERNAME" ] && [ -n "$TWINE_PASSWORD" ]; then
+        # Publish main package
+        if [ -d "$PROJECT_ROOT/dist" ]; then
+          $PYTHON_CMD -m twine upload --skip-existing "$PROJECT_ROOT/dist/"*
+        fi
+        
+        # Publish workload packages
+        for WHEEL_FILE in "$RELEASE_DIR/python"/*.whl; do
+          if [ -f "$WHEEL_FILE" ] && [[ "$WHEEL_FILE" != *"placeholder"* ]]; then
+            $PYTHON_CMD -m twine upload --skip-existing "$WHEEL_FILE"
+          fi
+        done
+        echo "Python packages published to PyPI successfully."
+      else
+        echo "PyPI credentials not found. Set TWINE_USERNAME and TWINE_PASSWORD or create ~/.pypirc file."
+      fi
+    else
+      echo "Twine not available. PyPI publishing skipped."
     fi
   else
-    echo "Python or Twine not found. Install with: pip install twine"
+    echo "Python not found. PyPI publishing skipped."
   fi
   
   # Publish Docker images to registry
