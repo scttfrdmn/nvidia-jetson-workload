@@ -1,0 +1,31 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2025 Scott Friedman and Project Contributors
+
+# DGX H100 System Configuration
+# This configuration describes a DGX H100 system setup with multiple units
+
+# System Specification
+system_type: "dgx_h100"           # Type of DGX system
+quantity: 2                        # Number of DGX systems
+power_cost: 0.12                   # Cost per kWh in USD
+amortization_period: 1095          # Hardware amortization period in days (3 years)
+maintenance_factor: 0.15           # Annual maintenance cost as fraction of hardware cost
+utilization_factor: 0.55           # Average system utilization
+networking_infrastructure_cost: 25000.0  # Additional networking infrastructure cost
+datacenter_overhead_factor: 0.22   # Datacenter overhead (cooling, space, etc.) as fraction of power
+admin_cost_per_year: 150000.0      # System administrator cost per year
+currency: "USD"
+
+# Note: Since we're using a predefined system type (dgx_h100), the following 
+# system configuration is informational only - it matches what's defined in the system.
+# These values are used automatically:
+#
+# System configuration for dgx_h100:
+# - name: DGX H100
+# - base_cost: 300000.0 USD
+# - gpus: 8 NVIDIA H100 80GB GPUs
+# - gpu_vram_gb: 80 GB per GPU
+# - cpu_cores: 144
+# - system_memory_gb: 2048 GB
+# - max_power_watts: 10800 watts
+# - interconnect: NVLink & NVSwitch

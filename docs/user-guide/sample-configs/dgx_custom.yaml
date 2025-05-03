@@ -1,0 +1,25 @@
+# Custom DGX System Configuration
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2025 Scott Friedman and Project Contributors
+
+# Base system type 
+system_type: "dgx_a100"
+
+# Number of DGX systems in this configuration
+quantity: 2
+
+# Power and energy costs
+power_cost: 0.13  # Cost per kWh in USD
+datacenter_overhead_factor: 0.25  # Datacenter overhead (cooling, space) as fraction of power
+
+# Financial assumptions
+amortization_period: 1095  # 3 years in days
+maintenance_factor: 0.15  # 15% of hardware cost per year for maintenance
+utilization_factor: 0.6  # Average system utilization (60%)
+
+# Infrastructure costs
+networking_infrastructure_cost: 25000.0  # Networking infrastructure cost in USD
+admin_cost_per_year: 130000.0  # System administrator cost per year in USD
+
+# Optional: Currency for reporting
+currency: "USD"

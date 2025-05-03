@@ -12,11 +12,12 @@ This user guide provides comprehensive documentation for using the GPU-accelerat
 3. [Available Workloads](#available-workloads)
 4. [Running Workloads](#running-workloads)
 5. [Benchmarking](#benchmarking)
-6. [Deployment](#deployment)
-7. [Visualization Dashboard](#visualization-dashboard)
-8. [Advanced Configuration](#advanced-configuration)
-9. [Troubleshooting](#troubleshooting)
-10. [Contributing](#contributing)
+6. [Cost Analysis](#cost-analysis)
+7. [Deployment](#deployment)
+8. [Visualization Dashboard](#visualization-dashboard)
+9. [Advanced Configuration](#advanced-configuration)
+10. [Troubleshooting](#troubleshooting)
+11. [Contributing](#contributing)
 
 ## Introduction
 
@@ -287,6 +288,48 @@ Then navigate to http://localhost:3000 in your browser.
 - Cluster status overview
 
 For more information, see [Visualization Dashboard Documentation](visualization-dashboard.md).
+
+## Cost Analysis
+
+The cost comparison framework allows you to compare execution costs between NVIDIA Jetson devices, cloud providers, DGX systems, and Slurm clusters.
+
+### Running Cost Analysis
+
+Enable cost analysis by adding the `--cost-analysis` flag to benchmark commands:
+
+```bash
+# Run all benchmarks with cost analysis
+./benchmark/scripts/run_benchmarks.sh --all --cost-analysis
+
+# Run with DGX and Slurm comparisons
+./benchmark/scripts/run_benchmarks.sh --nbody --cost-analysis \
+  --dgx-system-type dgx_a100 --slurm-node-type highend_gpu
+  
+# Use custom configuration files
+./benchmark/scripts/run_benchmarks.sh --all --cost-analysis \
+  --dgx-config benchmark/configs/dgx_custom.yaml \
+  --slurm-config benchmark/configs/slurm_custom.yaml
+```
+
+### Cost Metrics and Reports
+
+The cost analysis includes:
+
+- **Total Cost**: Hardware amortization, operational costs, and cloud instance costs
+- **Cost Efficiency**: Operations per dollar spent
+- **Cost Ratio**: Comparison between different computing environments
+- **Break-Even Analysis**: When local computing becomes more economical than cloud
+
+Results are visualized in the benchmark report with comparative charts and tables.
+
+### Sample Reports and Resources
+
+- [Cost Comparison Guide](cost-comparison.md) - Full documentation of cost modeling features
+- [Sample Cost Comparison Report](sample-reports/cost-comparison-sample.md) - Example reports with interpretation
+- [Detailed Cost Analysis Example](sample-reports/detailed-cost-analysis-example.md) - Step-by-step walkthrough of cost calculations
+- [Interpreting Cost Results](sample-reports/interpreting-cost-results.md) - Guide to understanding metrics and visualizations
+
+For more information, see [Cost Comparison Guide](cost-comparison.md).
 
 ## Advanced Configuration
 

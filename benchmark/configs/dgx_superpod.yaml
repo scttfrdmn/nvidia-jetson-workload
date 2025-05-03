@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2025 Scott Friedman and Project Contributors
+
+# DGX SuperPOD Configuration
+# This configuration describes a DGX SuperPOD system with multiple nodes
+
+# System Specification
+system_type: "dgx_superpod"                # Type of DGX system
+nodes_for_superpod: 20                     # Number of DGX nodes in the SuperPOD
+power_cost: 0.10                           # Cost per kWh in USD (bulk rate)
+amortization_period: 1460                  # Hardware amortization period in days (4 years)
+maintenance_factor: 0.18                   # Annual maintenance cost as fraction of hardware cost
+utilization_factor: 0.8                    # Average system utilization
+networking_infrastructure_cost: 500000.0   # Additional networking infrastructure cost
+datacenter_overhead_factor: 0.25           # Datacenter overhead (cooling, space, etc.) as fraction of power
+admin_cost_per_year: 500000.0              # System administrator cost per year (multiple admins)
+currency: "USD"
+
+# Note: Since we're using the predefined system type (dgx_superpod), the following 
+# system configuration is informational only - it matches what's defined in the system.
+# The number of nodes in the SuperPOD (nodes_for_superpod) will adjust the configuration.
+#
+# Base system configuration for dgx_superpod:
+# - name: DGX SuperPOD
+# - gpu_type: NVIDIA H100 80GB
+# - gpus_per_node: 8
+# - total_gpus: 8 * nodes_for_superpod
+# - interconnect: NVIDIA Quantum InfiniBand
+# - storage_tb: 1000 TB

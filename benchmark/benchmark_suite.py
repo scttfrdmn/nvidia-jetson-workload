@@ -45,7 +45,8 @@ class BenchmarkResult:
                  gpu_utilization: Optional[float] = None,
                  energy_consumption: Optional[float] = None,
                  throughput: Optional[float] = None,
-                 additional_metrics: Optional[Dict[str, Any]] = None):
+                 additional_metrics: Optional[Dict[str, Any]] = None,
+                 cost_metrics: Optional[Dict[str, Any]] = None):
         """
         Initialize benchmark result.
         
@@ -59,6 +60,7 @@ class BenchmarkResult:
             energy_consumption: Energy consumption in joules
             throughput: Workload-specific throughput metric
             additional_metrics: Additional workload-specific metrics
+            cost_metrics: Cost metrics from various compute environments
         """
         self.workload_name = workload_name
         self.device_name = device_name
@@ -69,6 +71,7 @@ class BenchmarkResult:
         self.energy_consumption = energy_consumption
         self.throughput = throughput
         self.additional_metrics = additional_metrics or {}
+        self.cost_metrics = cost_metrics or {}
         self.timestamp = datetime.now().isoformat()
     
     def to_dict(self) -> Dict[str, Any]:
@@ -83,6 +86,7 @@ class BenchmarkResult:
             "energy_consumption": self.energy_consumption,
             "throughput": self.throughput,
             "additional_metrics": self.additional_metrics,
+            "cost_metrics": self.cost_metrics,
             "timestamp": self.timestamp
         }
     
@@ -98,8 +102,147 @@ class BenchmarkResult:
             gpu_utilization=data.get("gpu_utilization"),
             energy_consumption=data.get("energy_consumption"),
             throughput=data.get("throughput"),
-            additional_metrics=data.get("additional_metrics", {})
+            additional_metrics=data.get("additional_metrics", {}),
+            cost_metrics=data.get("cost_metrics", {})
         )
+        
+    def calculate_cost_metrics(self, 
+                              compare_with_cloud: bool = True,
+                              aws_instance_type: str = "g4dn.xlarge",
+                              azure_instance_type: str = "Standard_NC4as_T4_v3",
+                              gcp_instance_type: str = "n1-standard-4-t4",
+                              include_dgx_spark: bool = True,
+                              dgx_system_type: str = "dgx_a100",
+                              dgx_quantity: int = 1,
+                              dgx_config_file: Optional[str] = None,
+                              include_slurm_cluster: bool = True,
+                              slurm_node_type: str = "basic_gpu",
+                              slurm_nodes: int = 4,
+                              slurm_config_file: Optional[str] = None) -> None:
+        """
+        Calculate cost metrics for various compute environments.
+        
+        Args:
+            compare_with_cloud: Whether to compare with cloud providers
+            aws_instance_type: AWS instance type for comparison
+            azure_instance_type: Azure instance type for comparison
+            gcp_instance_type: GCP instance type for comparison
+            include_dgx_spark: Whether to include DGX Spark system in comparison
+            dgx_system_type: DGX system type ("dgx_a100", "dgx_h100", "dgx_station_a100", "dgx_station_h100", "dgx_superpod")
+            dgx_quantity: Number of DGX systems (for non-SuperPOD systems)
+            dgx_config_file: Path to DGX configuration file (overrides other DGX parameters if provided)
+            include_slurm_cluster: Whether to include Slurm cluster in comparison
+            slurm_node_type: Slurm node type ("basic_cpu", "basic_gpu", "highend_gpu", "jetson_cluster", "custom")
+            slurm_nodes: Number of nodes in Slurm cluster
+            slurm_config_file: Path to Slurm cluster configuration file (overrides other Slurm parameters if provided)
+        """
+        from benchmark.cost_modeling import (
+            ComputeEnvironment,
+            CostModelFactory,
+            calculate_cost_comparison
+        )
+        
+        # Create Jetson cost model
+        jetson_model = CostModelFactory.create_model(ComputeEnvironment.LOCAL_JETSON)
+        
+        # Estimate Jetson cost
+        jetson_cost = jetson_model.estimate_cost(
+            self.execution_time,
+            self.memory_usage,
+            self.gpu_utilization,
+            self.energy_consumption,
+            self.additional_metrics
+        )
+        
+        # Store Jetson cost
+        self.cost_metrics["jetson"] = jetson_cost
+        
+        # Compare with cloud providers if requested
+        if compare_with_cloud:
+            cloud_costs = {}
+            
+            # AWS
+            aws_model = CostModelFactory.create_model(
+                ComputeEnvironment.AWS_GPU, 
+                instance_type=aws_instance_type
+            )
+            cloud_costs["aws"] = aws_model.estimate_cost(
+                self.execution_time,
+                self.memory_usage,
+                self.gpu_utilization,
+                self.energy_consumption,
+                self.additional_metrics
+            )
+            
+            # Azure
+            azure_model = CostModelFactory.create_model(
+                ComputeEnvironment.AZURE_GPU, 
+                instance_type=azure_instance_type
+            )
+            cloud_costs["azure"] = azure_model.estimate_cost(
+                self.execution_time,
+                self.memory_usage,
+                self.gpu_utilization,
+                self.energy_consumption,
+                self.additional_metrics
+            )
+            
+            # GCP
+            gcp_model = CostModelFactory.create_model(
+                ComputeEnvironment.GCP_GPU, 
+                instance_type=gcp_instance_type
+            )
+            cloud_costs["gcp"] = gcp_model.estimate_cost(
+                self.execution_time,
+                self.memory_usage,
+                self.gpu_utilization,
+                self.energy_consumption,
+                self.additional_metrics
+            )
+            
+            # DGX Spark
+            if include_dgx_spark:
+                dgx_model = CostModelFactory.create_model(
+                    ComputeEnvironment.DGX_SPARK,
+                    system_type=dgx_system_type,
+                    quantity=dgx_quantity,
+                    config_file=dgx_config_file
+                )
+                cloud_costs["dgx_spark"] = dgx_model.estimate_cost(
+                    self.execution_time,
+                    self.memory_usage,
+                    self.gpu_utilization,
+                    self.energy_consumption,
+                    self.additional_metrics
+                )
+            
+            # Slurm cluster
+            if include_slurm_cluster:
+                slurm_model = CostModelFactory.create_model(
+                    ComputeEnvironment.SLURM_CLUSTER,
+                    nodes=slurm_nodes,
+                    node_type=slurm_node_type,
+                    config_file=slurm_config_file
+                )
+                cloud_costs["slurm_cluster"] = slurm_model.estimate_cost(
+                    self.execution_time,
+                    self.memory_usage,
+                    self.gpu_utilization,
+                    self.energy_consumption,
+                    self.additional_metrics
+                )
+            
+            # Store cloud costs
+            self.cost_metrics["cloud"] = cloud_costs
+            
+            # Calculate cost comparison metrics
+            self.cost_metrics["comparison"] = calculate_cost_comparison(
+                jetson_cost,
+                cloud_costs,
+                self.workload_name,
+                self.execution_time,
+                self.throughput
+            )
 
 class WorkloadBenchmark:
     """Base class for workload benchmarks."""
@@ -652,27 +795,257 @@ class MedicalImagingBenchmark(WorkloadBenchmark):
             print(f"Error running Medical Imaging benchmark: {e}")
             raise
 
+class GeospatialBenchmark(WorkloadBenchmark):
+    """Benchmark for Geospatial Analysis workload."""
+    
+    def __init__(self, device_id: int = 0):
+        super().__init__("geospatial", device_id)
+    
+    def run(self, 
+            dataset_type: str = "dem", 
+            operation: str = "viewshed",
+            data_size: int = 1024,
+            **kwargs) -> BenchmarkResult:
+        """
+        Run Geospatial Analysis benchmark.
+        
+        Args:
+            dataset_type: Type of dataset (dem, point_cloud, raster, vector)
+            operation: Operation to perform (viewshed, terrain_derivatives, etc.)
+            data_size: Size of the dataset (pixels or points)
+            **kwargs: Additional parameters for the benchmark
+            
+        Returns:
+            BenchmarkResult: Benchmark results
+        """
+        try:
+            # Import Geospatial module
+            sys.path.append(str(project_root / "src" / "geospatial" / "python"))
+            import geospatial
+            
+            # Measure memory before running
+            memory_before = self._measure_memory_usage()
+            
+            if dataset_type == "dem" and operation == "viewshed":
+                # Create a synthetic DEM for benchmarking
+                dem_file = kwargs.get("dem_file")
+                
+                # If no DEM file is provided, create a synthetic one
+                if not dem_file:
+                    dem_file = self._create_synthetic_dem(data_size)
+                
+                # Create DEM processor
+                dem_processor = geospatial.DEMProcessor(dem_file, device_id=self.device_id)
+                
+                # Observer position at center of DEM
+                width, height = dem_processor.get_dimensions()
+                observer_point = (width // 2, height // 2)
+                observer_height = kwargs.get("observer_height", 1.8)
+                radius = kwargs.get("radius", 0.0)
+                
+                # Run benchmark
+                start_time = time.time()
+                viewshed = dem_processor.compute_viewshed(observer_point, observer_height, radius)
+                execution_time = time.time() - start_time
+                
+                # Additional metrics
+                additional_metrics = {
+                    "dem_size": f"{width}x{height}",
+                    "observer_height": observer_height,
+                    "radius": radius
+                }
+                
+                # Calculate throughput (pixels per second)
+                throughput = (width * height) / execution_time
+                
+            elif dataset_type == "dem" and operation == "terrain_derivatives":
+                # Create a synthetic DEM for benchmarking
+                dem_file = kwargs.get("dem_file")
+                
+                # If no DEM file is provided, create a synthetic one
+                if not dem_file:
+                    dem_file = self._create_synthetic_dem(data_size)
+                
+                # Create DEM processor
+                dem_processor = geospatial.DEMProcessor(dem_file, device_id=self.device_id)
+                
+                # Run benchmark
+                start_time = time.time()
+                terrain = dem_processor.compute_terrain_derivatives(z_factor=kwargs.get("z_factor", 1.0))
+                execution_time = time.time() - start_time
+                
+                # Additional metrics
+                width, height = dem_processor.get_dimensions()
+                additional_metrics = {
+                    "dem_size": f"{width}x{height}",
+                    "z_factor": kwargs.get("z_factor", 1.0)
+                }
+                
+                # Calculate throughput (pixels per second)
+                throughput = (width * height) / execution_time
+                
+            elif dataset_type == "point_cloud" and operation == "classification":
+                # Point cloud benchmarking
+                # This requires a point cloud file, create synthetic one if not provided
+                point_cloud_file = kwargs.get("point_cloud_file")
+                
+                if not point_cloud_file:
+                    # For now we just report a simulated result
+                    # In a real implementation, create a synthetic point cloud file
+                    execution_time = data_size / 1e6  # Simulate processing time
+                    throughput = data_size / execution_time
+                    additional_metrics = {
+                        "num_points": data_size,
+                        "simulated": True
+                    }
+                else:
+                    # Create point cloud processor
+                    point_cloud = geospatial.PointCloud(point_cloud_file, device_id=self.device_id)
+                    
+                    # Run benchmark
+                    start_time = time.time()
+                    classified = point_cloud.classify_points()
+                    execution_time = time.time() - start_time
+                    
+                    # Additional metrics
+                    num_points = point_cloud.get_num_points()
+                    additional_metrics = {
+                        "num_points": num_points,
+                        "simulated": False
+                    }
+                    
+                    # Calculate throughput (points per second)
+                    throughput = num_points / execution_time
+            
+            else:
+                raise ValueError(f"Unsupported benchmark: {dataset_type} - {operation}")
+            
+            # Measure memory after running
+            memory_after = self._measure_memory_usage()
+            memory_usage = {
+                "host": memory_after["host"] - memory_before["host"],
+                "device": memory_after["device"] - memory_before["device"]
+            }
+            
+            # Get GPU utilization
+            gpu_utilization = self._measure_gpu_utilization()
+            
+            # Create benchmark result
+            return BenchmarkResult(
+                workload_name=f"{self.name}_{dataset_type}_{operation}",
+                device_name=self.device_name,
+                device_capabilities=self.device_capabilities,
+                execution_time=execution_time,
+                memory_usage=memory_usage,
+                gpu_utilization=gpu_utilization,
+                throughput=throughput,
+                additional_metrics=additional_metrics
+            )
+        
+        except Exception as e:
+            print(f"Error running Geospatial benchmark: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
+    
+    def _create_synthetic_dem(self, size: int) -> str:
+        """Create a synthetic DEM for benchmarking."""
+        import tempfile
+        import numpy as np
+        from pathlib import Path
+        
+        # Create a temporary file
+        with tempfile.NamedTemporaryFile(suffix='.npy', delete=False) as f:
+            temp_file = f.name
+        
+        # Create a simple DEM (sinusoidal terrain)
+        x = np.linspace(0, 10, size)
+        y = np.linspace(0, 10, size)
+        X, Y = np.meshgrid(x, y)
+        Z = np.sin(X) * np.cos(Y) * 100 + 1000  # Elevation in meters
+        
+        # Save the DEM to the temporary file
+        np.save(temp_file, Z)
+        
+        return temp_file
+
+
 class BenchmarkSuite:
     """Integrated benchmark suite for all workloads."""
     
-    def __init__(self, device_id: int = 0, output_dir: str = "results"):
+    def __init__(self, 
+                device_id: int = 0, 
+                output_dir: str = "results",
+                enable_cost_modeling: bool = False,
+                aws_instance_type: str = "g4dn.xlarge",
+                azure_instance_type: str = "Standard_NC4as_T4_v3",
+                gcp_instance_type: str = "n1-standard-4-t4",
+                # DGX Spark configuration
+                include_dgx_spark: bool = True,
+                dgx_system_type: str = "dgx_a100",
+                dgx_quantity: int = 1,
+                dgx_config_file: Optional[str] = None,
+                # Slurm cluster configuration
+                include_slurm_cluster: bool = True,
+                slurm_node_type: str = "basic_gpu",
+                slurm_nodes: int = 4,
+                slurm_config_file: Optional[str] = None):
         """
         Initialize benchmark suite.
         
         Args:
             device_id: GPU device ID to use
             output_dir: Directory to store results
+            enable_cost_modeling: Whether to enable cost modeling
+            
+            # Cloud provider configuration
+            aws_instance_type: AWS instance type for comparison
+            azure_instance_type: Azure instance type for comparison
+            gcp_instance_type: GCP instance type for comparison
+            
+            # DGX Spark configuration
+            include_dgx_spark: Whether to include DGX Spark system in comparison
+            dgx_system_type: DGX system type ("dgx_a100", "dgx_h100", "dgx_station_a100", "dgx_station_h100", "dgx_superpod")
+            dgx_quantity: Number of DGX systems (for non-SuperPOD systems)
+            dgx_config_file: Path to DGX configuration file (overrides other DGX parameters if provided)
+            
+            # Slurm cluster configuration
+            include_slurm_cluster: Whether to include Slurm cluster in comparison
+            slurm_node_type: Slurm node type ("basic_cpu", "basic_gpu", "highend_gpu", "jetson_cluster", "custom")
+            slurm_nodes: Number of nodes in Slurm cluster
+            slurm_config_file: Path to Slurm cluster configuration file (overrides other Slurm parameters if provided)
         """
         self.device_id = device_id
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Cost modeling configuration
+        self.enable_cost_modeling = enable_cost_modeling
+        
+        # Cloud provider configuration
+        self.aws_instance_type = aws_instance_type
+        self.azure_instance_type = azure_instance_type
+        self.gcp_instance_type = gcp_instance_type
+        
+        # DGX Spark configuration
+        self.include_dgx_spark = include_dgx_spark
+        self.dgx_system_type = dgx_system_type
+        self.dgx_quantity = dgx_quantity
+        self.dgx_config_file = dgx_config_file
+        
+        # Slurm cluster configuration
+        self.include_slurm_cluster = include_slurm_cluster
+        self.slurm_node_type = slurm_node_type
+        self.slurm_nodes = slurm_nodes
+        self.slurm_config_file = slurm_config_file
         
         # Create workload benchmarks
         self.benchmarks = {
             "nbody_sim": NBodySimbenchmark(device_id),
             "molecular_dynamics": MolecularDynamicsBenchmark(device_id),
             "weather_sim": WeatherSimulationBenchmark(device_id),
-            "medical_imaging": MedicalImagingBenchmark(device_id)
+            "medical_imaging": MedicalImagingBenchmark(device_id),
+            "geospatial": GeospatialBenchmark(device_id)
         }
         
         # Results storage
@@ -694,6 +1067,27 @@ class BenchmarkSuite:
         
         print(f"Running {benchmark_name} benchmark...")
         result = self.benchmarks[benchmark_name].run(**kwargs)
+        
+        # Calculate cost metrics if enabled
+        if self.enable_cost_modeling:
+            print(f"Calculating cost metrics for {benchmark_name}...")
+            result.calculate_cost_metrics(
+                compare_with_cloud=True,
+                aws_instance_type=self.aws_instance_type,
+                azure_instance_type=self.azure_instance_type,
+                gcp_instance_type=self.gcp_instance_type,
+                # DGX Spark configuration
+                include_dgx_spark=self.include_dgx_spark,
+                dgx_system_type=self.dgx_system_type,
+                dgx_quantity=self.dgx_quantity,
+                dgx_config_file=self.dgx_config_file,
+                # Slurm cluster configuration
+                include_slurm_cluster=self.include_slurm_cluster,
+                slurm_node_type=self.slurm_node_type,
+                slurm_nodes=self.slurm_nodes,
+                slurm_config_file=self.slurm_config_file
+            )
+        
         self.results[benchmark_name] = result
         
         # Save result to file
@@ -705,7 +1099,8 @@ class BenchmarkSuite:
                 nbody_params: Optional[Dict[str, Any]] = None,
                 md_params: Optional[Dict[str, Any]] = None,
                 weather_params: Optional[Dict[str, Any]] = None,
-                medical_params: Optional[Dict[str, Any]] = None) -> Dict[str, BenchmarkResult]:
+                medical_params: Optional[Dict[str, Any]] = None,
+                geospatial_params: Optional[Dict[str, Any]] = None) -> Dict[str, BenchmarkResult]:
         """
         Run all benchmarks.
         
@@ -714,6 +1109,7 @@ class BenchmarkSuite:
             md_params: Parameters for Molecular Dynamics benchmark
             weather_params: Parameters for Weather Simulation benchmark
             medical_params: Parameters for Medical Imaging benchmark
+            geospatial_params: Parameters for Geospatial Analysis benchmark
         
         Returns:
             Dict[str, BenchmarkResult]: Dictionary of benchmark results
@@ -722,6 +1118,7 @@ class BenchmarkSuite:
         md_params = md_params or {}
         weather_params = weather_params or {}
         medical_params = medical_params or {}
+        geospatial_params = geospatial_params or {}
         
         print("Running all benchmarks...")
         
@@ -748,6 +1145,22 @@ class BenchmarkSuite:
                 self.run_benchmark("medical_imaging", **params)
         except Exception as e:
             print(f"Error running Medical Imaging benchmark: {e}")
+            
+        try:
+            # Run Geospatial benchmarks for different operations
+            dataset_type = geospatial_params.get("dataset_type", "dem")
+            
+            if dataset_type == "dem":
+                for operation in ["viewshed", "terrain_derivatives"]:
+                    params = geospatial_params.copy()
+                    params["operation"] = operation
+                    self.run_benchmark("geospatial", **params)
+            elif dataset_type == "point_cloud":
+                params = geospatial_params.copy()
+                params["operation"] = "classification"
+                self.run_benchmark("geospatial", **params)
+        except Exception as e:
+            print(f"Error running Geospatial benchmark: {e}")
         
         return self.results
     
@@ -832,6 +1245,7 @@ def main():
     parser.add_argument("--md", action="store_true", help="Run Molecular Dynamics benchmark")
     parser.add_argument("--weather", action="store_true", help="Run Weather Simulation benchmark")
     parser.add_argument("--medical", action="store_true", help="Run Medical Imaging benchmark")
+    parser.add_argument("--geospatial", action="store_true", help="Run Geospatial Analysis benchmark")
     
     # N-body parameters
     parser.add_argument("--nbody-particles", type=int, default=10000, help="Number of particles for N-body simulation")
@@ -854,10 +1268,70 @@ def main():
     parser.add_argument("--medical-task", type=str, default="ct_reconstruction", choices=["ct_reconstruction", "segmentation", "registration"], help="Task for Medical Imaging")
     parser.add_argument("--medical-iterations", type=int, default=10, help="Number of iterations for Medical Imaging")
     
+    # Geospatial parameters
+    parser.add_argument("--geo-dataset", type=str, default="dem", choices=["dem", "point_cloud", "raster", "vector"], help="Dataset type for Geospatial Analysis")
+    parser.add_argument("--geo-operation", type=str, default="viewshed", choices=["viewshed", "terrain_derivatives", "classification"], help="Operation for Geospatial Analysis")
+    parser.add_argument("--geo-size", type=int, default=1024, help="Size of dataset (pixels or points) for Geospatial Analysis")
+    parser.add_argument("--geo-file", type=str, default="", help="Path to dataset file (optional, will create synthetic if not provided)")
+    parser.add_argument("--geo-height", type=float, default=1.8, help="Observer height for viewshed analysis (meters)")
+    
+    # Cost modeling parameters
+    cost_group = parser.add_argument_group('Cost Modeling', 'Settings for cost comparison analysis')
+    cost_group.add_argument("--cost-analysis", action="store_true", help="Enable cost modeling and comparison")
+    
+    # Cloud provider options
+    cost_group.add_argument("--aws-instance", type=str, default="g4dn.xlarge", 
+                          choices=["g4dn.xlarge", "g4dn.2xlarge", "g5.xlarge", "p3.2xlarge", "g3s.xlarge"],
+                          help="AWS instance type for cost comparison")
+    cost_group.add_argument("--azure-instance", type=str, default="Standard_NC4as_T4_v3",
+                          choices=["Standard_NC4as_T4_v3", "Standard_NC6s_v3", "Standard_ND96asr_A100_v4"],
+                          help="Azure instance type for cost comparison")
+    cost_group.add_argument("--gcp-instance", type=str, default="n1-standard-4-t4",
+                          choices=["n1-standard-4-t4", "n1-standard-8-v100", "a2-highgpu-1g"],
+                          help="GCP instance type for cost comparison")
+                          
+    # DGX Spark options
+    cost_group.add_argument("--no-dgx-spark", action="store_true", help="Exclude DGX Spark from cost comparison")
+    cost_group.add_argument("--dgx-system-type", type=str, default="dgx_a100",
+                          choices=["dgx_a100", "dgx_h100", "dgx_station_a100", "dgx_station_h100", "dgx_superpod"],
+                          help="DGX system type for cost comparison")
+    cost_group.add_argument("--dgx-quantity", type=int, default=1, 
+                          help="Number of DGX systems (for non-SuperPOD systems)")
+    cost_group.add_argument("--dgx-config", type=str, default=None,
+                          help="Path to DGX configuration file (overrides other DGX parameters if provided)")
+                          
+    # Slurm cluster options
+    cost_group.add_argument("--no-slurm-cluster", action="store_true", help="Exclude Slurm cluster from cost comparison")
+    cost_group.add_argument("--slurm-node-type", type=str, default="basic_gpu",
+                          choices=["basic_cpu", "basic_gpu", "highend_gpu", "jetson_cluster", "custom"],
+                          help="Slurm node type for cost comparison")
+    cost_group.add_argument("--slurm-nodes", type=int, default=4, 
+                          help="Number of nodes in Slurm cluster for cost comparison")
+    cost_group.add_argument("--slurm-config", type=str, default=None,
+                          help="Path to Slurm cluster configuration file (overrides other Slurm parameters if provided)")
+    
     args = parser.parse_args()
     
     # Create benchmark suite
-    suite = BenchmarkSuite(device_id=args.device, output_dir=args.output)
+    suite = BenchmarkSuite(
+        device_id=args.device, 
+        output_dir=args.output,
+        enable_cost_modeling=args.cost_analysis,
+        # Cloud provider configuration
+        aws_instance_type=args.aws_instance,
+        azure_instance_type=args.azure_instance,
+        gcp_instance_type=args.gcp_instance,
+        # DGX Spark configuration
+        include_dgx_spark=not args.no_dgx_spark,
+        dgx_system_type=args.dgx_system_type,
+        dgx_quantity=args.dgx_quantity,
+        dgx_config_file=args.dgx_config,
+        # Slurm cluster configuration
+        include_slurm_cluster=not args.no_slurm_cluster,
+        slurm_node_type=args.slurm_node_type,
+        slurm_nodes=args.slurm_nodes,
+        slurm_config_file=args.slurm_config
+    )
     
     # Generate report if requested
     if args.report:
@@ -865,7 +1339,7 @@ def main():
         return
     
     # Run benchmarks
-    if args.all or not (args.nbody or args.md or args.weather or args.medical):
+    if args.all or not (args.nbody or args.md or args.weather or args.medical or args.geospatial):
         # Prepare parameters
         nbody_params = {
             "num_particles": args.nbody_particles,
@@ -892,12 +1366,22 @@ def main():
             "num_iterations": args.medical_iterations
         }
         
+        geospatial_params = {
+            "dataset_type": args.geo_dataset,
+            "operation": args.geo_operation,
+            "data_size": args.geo_size,
+            "dem_file": args.geo_file if args.geo_dataset == "dem" else None,
+            "point_cloud_file": args.geo_file if args.geo_dataset == "point_cloud" else None,
+            "observer_height": args.geo_height
+        }
+        
         # Run all benchmarks
         suite.run_all(
             nbody_params=nbody_params,
             md_params=md_params,
             weather_params=weather_params,
-            medical_params=medical_params
+            medical_params=medical_params,
+            geospatial_params=geospatial_params
         )
     else:
         # Run individual benchmarks
@@ -925,6 +1409,71 @@ def main():
                                image_size=args.medical_size,
                                task=args.medical_task,
                                num_iterations=args.medical_iterations)
+        
+        if args.geospatial:
+            # Check if advanced geospatial benchmarks are available
+            advanced_geospatial = False
+            try:
+                # Try to import advanced geospatial benchmark modules
+                sys.path.append(str(project_root / "src" / "geospatial"))
+                from benchmark.geospatial_benchmark import GeospatialBenchmarkSuite
+                from benchmark.datasets import TerrainType
+                advanced_geospatial = True
+            except ImportError:
+                # Fall back to basic benchmark
+                print("Advanced geospatial benchmarks not available, using basic benchmark...")
+                advanced_geospatial = False
+            
+            if advanced_geospatial:
+                # Use advanced geospatial benchmarks via adapter
+                from benchmark.scripts.run_geospatial_benchmark import GeospatialBenchmarkAdapter
+                
+                print("Running advanced geospatial benchmarks...")
+                adapter = GeospatialBenchmarkAdapter(
+                    device_id=args.device,
+                    output_dir=args.output,
+                    enable_cost_modeling=args.cost_analysis,
+                    aws_instance_type=args.aws_instance,
+                    azure_instance_type=args.azure_instance,
+                    gcp_instance_type=args.gcp_instance
+                )
+                adapter.set_main_suite(suite)
+                
+                # Map dataset type to terrain type
+                terrain_map = {
+                    "dem": "rolling_hills",
+                    "point_cloud": "uniform",
+                    "raster": "flat",
+                    "vector": "random"
+                }
+                
+                # Map operation to DEM size
+                size_map = {
+                    "viewshed": "medium",
+                    "terrain_derivatives": "medium",
+                    "classification": "medium"
+                }
+                
+                # Run geospatial benchmarks
+                geospatial_results = adapter.run_benchmarks(
+                    dem_size=size_map.get(args.geo_operation, "medium"),
+                    dem_type=terrain_map.get(args.geo_dataset, "rolling_hills"),
+                    pc_size="medium",
+                    pc_density="uniform"
+                )
+                
+                # Add results to main suite
+                for name, result in geospatial_results.items():
+                    suite.results[name] = result
+            else:
+                # Use basic benchmark
+                suite.run_benchmark("geospatial",
+                                  dataset_type=args.geo_dataset,
+                                  operation=args.geo_operation,
+                                  data_size=args.geo_size,
+                                  dem_file=args.geo_file if args.geo_dataset == "dem" else None,
+                                  point_cloud_file=args.geo_file if args.geo_dataset == "point_cloud" else None,
+                                  observer_height=args.geo_height)
     
     # Generate report
     suite.generate_reports()
