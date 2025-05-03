@@ -217,13 +217,14 @@ fi
 # Create wheel files for each workload if Python is available
 if [ -n "$PYTHON_CMD" ]; then
   # Check for externally managed environment and add appropriate flags
-  if $PYTHON_CMD -c "import sys; sys.exit(1 if hasattr(sys, 'externally_managed_environment') and sys.externally_managed_environment else 0)" 2>/dev/null; then
-    # Not an externally managed environment
-    PIP_ARGS=""
-  else
+  # Try installing a harmless package to see if it's externally managed
+  if $PYTHON_CMD -m pip install --dry-run setuptools 2>&1 | grep -q "externally-managed-environment"; then
     # Externally managed environment (PEP 668)
     echo "Detected externally managed Python environment, adding --break-system-packages flag"
     PIP_ARGS="--break-system-packages"
+  else
+    # Not an externally managed environment
+    PIP_ARGS=""
   fi
 
   # Install build dependencies first
@@ -372,13 +373,14 @@ if [ "$PUBLISH" = true ]; then
   
   # Check/set PIP_ARGS if not already set
   if [ -n "$PYTHON_CMD" ] && [ -z "$PIP_ARGS" ]; then
-    if $PYTHON_CMD -c "import sys; sys.exit(1 if hasattr(sys, 'externally_managed_environment') and sys.externally_managed_environment else 0)" 2>/dev/null; then
-      # Not an externally managed environment
-      PIP_ARGS=""
-    else
+    # Try installing a harmless package to see if it's externally managed
+    if $PYTHON_CMD -m pip install --dry-run setuptools 2>&1 | grep -q "externally-managed-environment"; then
       # Externally managed environment (PEP 668)
       echo "Detected externally managed Python environment, adding --break-system-packages flag"
       PIP_ARGS="--break-system-packages"
+    else
+      # Not an externally managed environment
+      PIP_ARGS=""
     fi
   fi
   
