@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="1000" height="700" xmlns="http://www.w3.org/2000/svg">
+    <!-- SPDX-License-Identifier: Apache-2.0 -->
+    <!-- Copyright 2024 nvidia-jetson-workload contributors -->
+    
+    <!-- Styles -->
+    <style>
+        .background { fill: #252525; }
+        .node { fill: #393939; stroke: #666666; stroke-width: 2; }
+        .node-gpu { fill: #76B900; } /* NVIDIA green */
+        .node-aws { fill: #FF9900; } /* AWS orange */
+        .node-data { fill: #00A3E0; } /* Data blue */
+        .connection { stroke: #999999; stroke-width: 2; }
+        .data-flow { stroke: #00A3E0; stroke-width: 2; stroke-dasharray: 5,5; }
+        .label { font-family: Arial, sans-serif; fill: #FFFFFF; font-size: 14px; text-anchor: middle; }
+        .title { font-family: Arial, sans-serif; fill: #FFFFFF; font-size: 24px; font-weight: bold; text-anchor: middle; }
+        .subtitle { font-family: Arial, sans-serif; fill: #CCCCCC; font-size: 18px; text-anchor: middle; }
+        .small-text { font-family: Arial, sans-serif; fill: #CCCCCC; font-size: 12px; }
+    </style>
+    
+    <!-- Background -->
+    <rect width="1000" height="700" class="background" />
+    
+    <!-- Title -->
+    <text x="500" y="40" class="title">NVIDIA Jetson Workload Architecture</text>
+    <text x="500" y="70" class="subtitle">Scientific Computing with GPU Acceleration and Cloud Bursting</text>
+    
+    <!-- Development Environment (Top Left) -->
+    <rect x="50" y="120" width="180" height="120" rx="10" class="node" />
+    <text x="140" y="150" class="label">Development</text>
+    <text x="140" y="170" class="label">Environment</text>
+    <text x="140" y="195" class="small-text">Mac/Workstation</text>
+    <text x="140" y="215" class="small-text">Git + Deployment Scripts</text>
+    
+    <!-- Slurm Head Node (Top Center) -->
+    <rect x="410" y="120" width="180" height="120" rx="10" class="node" />
+    <text x="500" y="150" class="label">Slurm Head Node</text>
+    <text x="500" y="170" class="label">(VM on Mac)</text>
+    <text x="500" y="195" class="small-text">Job Scheduling</text>
+    <text x="500" y="215" class="small-text">Resource Management</text>
+    
+    <!-- Visualization Dashboard (Top Right) -->
+    <rect x="770" y="120" width="180" height="120" rx="10" class="node" />
+    <text x="860" y="150" class="label">Visualization</text>
+    <text x="860" y="170" class="label">Dashboard</text>
+    <text x="860" y="195" class="small-text">React + WebSockets</text>
+    <text x="860" y="215" class="small-text">Browser-based UI</text>
+    
+    <!-- Data Source -->
+    <rect x="770" y="280" width="180" height="100" rx="10" class="node node-data" />
+    <text x="860" y="315" class="label">AWS Open Data</text>
+    <text x="860" y="335" class="label">Datasets</text>
+    <text x="860" y="355" class="small-text">NOAA HRRR, FastMRI</text>
+    
+    <!-- Jetson Cluster (Middle Section) -->
+    <g>
+        <!-- Jetson 1 -->
+        <rect x="100" y="280" width="140" height="110" rx="10" class="node" />
+        <rect x="110" y="325" width="120" height="55" rx="5" class="node-gpu" />
+        <text x="170" y="310" class="label">Jetson 1</text>
+        <text x="170" y="355" class="label">Orin NX</text>
+        <text x="170" y="375" class="small-text">16GB RAM</text>
+        
+        <!-- Jetson 2 -->
+        <rect x="280" y="280" width="140" height="110" rx="10" class="node" />
+        <rect x="290" y="325" width="120" height="55" rx="5" class="node-gpu" />
+        <text x="350" y="310" class="label">Jetson 2</text>
+        <text x="350" y="355" class="label">Orin NX</text>
+        <text x="350" y="375" class="small-text">16GB RAM</text>
+        
+        <!-- Jetson 3 -->
+        <rect x="460" y="280" width="140" height="110" rx="10" class="node" />
+        <rect x="470" y="325" width="120" height="55" rx="5" class="node-gpu" />
+        <text x="530" y="310" class="label">Jetson 3</text>
+        <text x="530" y="355" class="label">Orin NX</text>
+        <text x="530" y="375" class="small-text">16GB RAM</text>
+        
+        <!-- Jetson 4 -->
+        <rect x="640" y="280" width="140" height="110" rx="10" class="node" />
+        <rect x="650" y="325" width="120" height="55" rx="5" class="node-gpu" />
+        <text x="710" y="310" class="label">Jetson 4</text>
+        <text x="710" y="355" class="label">Orin NX</text>
+        <text x="710" y="375" class="small-text">16GB RAM</text>
+    </g>
+    
+    <!-- AWS Cloud Bursting (Bottom Section) -->
+    <rect x="340" y="450" width="300" height="160" rx="15" class="node" />
+    <rect x="350" y="500" width="280" height="100" rx="10" class="node-aws" />
+    <text x="490" y="480" class="label">AWS Cloud Bursting</text>
+    <text x="490" y="530" class="label">Graviton g5g Instances</text>
+    <text x="490" y="560" class="label">ARM + NVIDIA GPUs</text>
+    <text x="490" y="585" class="small-text">Similar Architecture to Jetson</text>
+    
+    <!-- Workloads (Bottom) -->
+    <g>
+        <!-- Weather Simulation -->
+        <rect x="50" y="440" width="250" height="70" rx="10" class="node" />
+        <text x="175" y="470" class="label">Weather Simulation</text>
+        <text x="175" y="490" class="small-text">NOAA HRRR Data / CUDA Fluid Dynamics</text>
+        
+        <!-- Medical Imaging -->
+        <rect x="50" y="520" width="250" height="70" rx="10" class="node" />
+        <text x="175" y="550" class="label">Medical Imaging Processing</text>
+        <text x="175" y="570" class="small-text">FastMRI Data / GPU Neural Networks</text>
+        
+        <!-- N-body Simulation -->
+        <rect x="50" y="600" width="250" height="70" rx="10" class="node" />
+        <text x="175" y="630" class="label">N-body Simulation</text>
+        <text x="175" y="650" class="small-text">Astrophysics / CUDA Particle System</text>
+        
+        <!-- Results Aggregation -->
+        <rect x="700" y="520" width="250" height="70" rx="10" class="node" />
+        <text x="825" y="550" class="label">Results Aggregation</text>
+        <text x="825" y="570" class="small-text">Protocol Buffers / Time Series Data</text>
+    </g>
+    
+    <!-- Connections -->
+    <g>
+        <!-- Development to Slurm -->
+        <line x1="230" y1="180" x2="410" y2="180" class="connection" />
+        
+        <!-- Development to Jetsons -->
+        <line x1="140" y1="240" x2="140" y2="280" class="connection" />
+        <line x1="170" y1="240" x2="350" y2="280" class="connection" />
+        <line x1="200" y1="240" x2="530" y2="280" class="connection" />
+        <line x1="230" y1="240" x2="710" y2="280" class="connection" />
+        
+        <!-- Slurm to Jetsons -->
+        <line x1="470" y1="240" x2="170" y2="280" class="connection" />
+        <line x1="490" y1="240" x2="350" y2="280" class="connection" />
+        <line x1="510" y1="240" x2="530" y2="280" class="connection" />
+        <line x1="530" y1="240" x2="710" y2="280" class="connection" />
+        
+        <!-- Slurm to AWS -->
+        <line x1="490" y1="240" x2="490" y2="450" class="connection" />
+        
+        <!-- Slurm to Dashboard -->
+        <line x1="590" y1="180" x2="770" y2="180" class="connection" />
+        
+        <!-- Data to Jetsons/AWS -->
+        <path d="M 770 330 C 730 330 730 335 690 335" class="data-flow" />
+        <path d="M 770 340 C 710 340 710 345 530 345" class="data-flow" />
+        <path d="M 770 350 C 690 350 690 355 350 355" class="data-flow" />
+        <path d="M 770 360 C 670 360 670 365 170 365" class="data-flow" />
+        <path d="M 860 380 C 860 420 490 420 490 450" class="data-flow" />
+        
+        <!-- Workloads to Compute -->
+        <path d="M 300 470 C 330 470 330 335 350 335" class="data-flow" />
+        <path d="M 300 550 C 470 550 470 385 530 385" class="data-flow" />
+        <path d="M 300 630 C 670 630 670 385 710 385" class="data-flow" />
+        
+        <!-- Results to Dashboard -->
+        <path d="M 170 390 C 170 440 700 550 700 550" class="data-flow" />
+        <path d="M 350 390 C 350 460 700 560 700 560" class="data-flow" />
+        <path d="M 530 390 C 530 480 700 570 700 570" class="data-flow" />
+        <path d="M 710 390 C 710 500 700 580 700 580" class="data-flow" />
+        <path d="M 490 500 C 600 500 650 555 700 555" class="data-flow" />
+        <path d="M 825 520 C 825 400 860 240 860 240" class="data-flow" />
+    </g>
+</svg>
