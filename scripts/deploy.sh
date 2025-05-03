@@ -7,14 +7,15 @@
 set -e
 
 # Default values
-JETSON_HOST=${1:-"jetson-node1"}
-JETSON_USER=${2:-"jetson"}
+JETSON_HOST=${1:-"orin1"}
+JETSON_USER=${2:-"ubuntu"}
 REMOTE_DIR=${3:-"/home/${JETSON_USER}/nvidia-jetson-workload"}
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 if [[ $# -lt 1 ]]; then
     echo "Usage: $0 <jetson-hostname> [user] [remote-dir]"
-    echo "Example: $0 jetson-node1 jetson /home/jetson/projects/nvidia-jetson-workload"
+    echo "Example: $0 orin1 ubuntu /home/ubuntu/nvidia-jetson-workload"
+    echo "Available nodes: orin1, orin2, orin3, orin4"
     exit 1
 fi
 

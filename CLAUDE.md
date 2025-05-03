@@ -148,8 +148,10 @@ Each commit must represent a complete, validated change:
 ## Cross-Compilation and Deployment
 
 All target systems are running Ubuntu 22.04.x:
-- Slurm head node VM on Mac
-- All four Jetson Orin NX nodes
+- Slurm head node VM on Mac (hostname: `linux-0`)
+- Four Jetson Orin NX compute nodes (hostnames: `orin1`, `orin2`, `orin3`, `orin4`)
+
+These systems can be accessed using their respective hostnames via SSH/SCP. SSH key distribution may be required for automated deployment and testing.
 
 Follow this process for testing on target devices:
 
