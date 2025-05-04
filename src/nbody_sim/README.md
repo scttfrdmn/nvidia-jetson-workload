@@ -1,7 +1,7 @@
 # N-Body Simulation Workload
 
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-<!-- Copyright 2024 nvidia-jetson-workload contributors -->
+<!-- Copyright 2025 Scott Friedman and Project Contributors -->
 
 This directory contains implementations of an N-body gravitational simulation workload for NVIDIA Jetson devices.
 

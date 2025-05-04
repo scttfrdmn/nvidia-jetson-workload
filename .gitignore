@@ -60,3 +60,4 @@ Thumbs.db
 # Project specific
 config.local.json
 output/
+**/.claude/settings.local.json

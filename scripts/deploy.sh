@@ -1,6 +1,6 @@
 #!/bin/bash
 # SPDX-License-Identifier: Apache-2.0
-# Copyright 2024 nvidia-jetson-workload contributors
+# Copyright 2025 Scott Friedman and Project Contributors
 
 # This script deploys code to the Jetson devices for development and testing
 

@@ -2,7 +2,7 @@ Bootstrap: docker
 From: nvcr.io/nvidia/l4t-pytorch:r35.2.1-pth2.0-py3
 
 # SPDX-License-Identifier: Apache-2.0
-# Copyright 2024 nvidia-jetson-workload contributors
+# Copyright 2025 Scott Friedman and Project Contributors
 
 %labels
     AUTHOR NVIDIA Jetson Workload Contributors

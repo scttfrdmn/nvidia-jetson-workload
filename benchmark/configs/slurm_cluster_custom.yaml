@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2025 Scott Friedman and Project Contributors
+
+# Custom Slurm Cluster Configuration
+# This configuration describes a custom Slurm cluster with mixed GPU nodes
+
+# Cluster Specification
+nodes: 8                     # Number of nodes in the cluster
+node_type: "custom"          # Type of nodes (basic_cpu, basic_gpu, highend_gpu, jetson_cluster, custom)
+power_cost: 0.14             # Cost per kWh in USD
+amortization_period: 1095    # Hardware amortization period in days (3 years)
+maintenance_factor: 0.1      # Annual maintenance cost as fraction of hardware cost
+utilization_factor: 0.6      # Average cluster utilization
+network_cost: 8000.0         # Network infrastructure cost (USD)
+admin_cost_per_year: 20000.0 # System administrator cost per year (USD)
+currency: "USD"
+
+# Custom node configuration (required when node_type is "custom")
+custom_node_config:
+  cost: 4500.0               # Cost per node in USD
+  power_watts: 400.0         # Power consumption per node in watts
+  has_gpu: true              # Whether the nodes have GPUs
+  memory_gb: 96              # Memory per node in GB
+  cores: 24                  # CPU cores per node
+  gpu_type: "NVIDIA RTX A6000" # GPU type
+  gpus_per_node: 2           # Number of GPUs per node

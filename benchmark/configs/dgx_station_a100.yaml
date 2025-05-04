@@ -1,0 +1,31 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2025 Scott Friedman and Project Contributors
+
+# DGX Station A100 Configuration
+# This configuration describes a DGX Station A100 workstation
+
+# System Specification
+system_type: "dgx_station_a100"  # Type of DGX system
+quantity: 1                       # Number of DGX systems
+power_cost: 0.12                  # Cost per kWh in USD
+amortization_period: 1095         # Hardware amortization period in days (3 years)
+maintenance_factor: 0.12          # Annual maintenance cost as fraction of hardware cost
+utilization_factor: 0.6           # Average system utilization
+networking_infrastructure_cost: 5000.0  # Additional networking infrastructure cost
+datacenter_overhead_factor: 0.1   # Datacenter overhead (cooling, space, etc.) as fraction of power
+admin_cost_per_year: 40000.0      # System administrator cost per year
+currency: "USD"
+
+# Note: Since we're using a predefined system type (dgx_station_a100), the following 
+# system configuration is informational only - it matches what's defined in the system.
+# These values are used automatically:
+#
+# System configuration for dgx_station_a100:
+# - name: DGX Station A100
+# - base_cost: 99000.0 USD
+# - gpus: 4 NVIDIA A100 80GB GPUs
+# - gpu_vram_gb: 80 GB per GPU
+# - cpu_cores: 64
+# - system_memory_gb: 512 GB
+# - max_power_watts: 1500 watts
+# - interconnect: NVLink

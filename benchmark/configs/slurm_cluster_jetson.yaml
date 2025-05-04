@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2025 Scott Friedman and Project Contributors
+
+# Jetson Slurm Cluster Configuration
+# This configuration describes a Slurm cluster built with Jetson nodes
+
+# Cluster Specification
+nodes: 32                    # Number of nodes in the cluster (many Jetson nodes for parallel workloads)
+node_type: "jetson_cluster"  # Type of nodes (basic_cpu, basic_gpu, highend_gpu, jetson_cluster, custom)
+power_cost: 0.12             # Cost per kWh in USD
+amortization_period: 730     # Hardware amortization period in days (2 years)
+maintenance_factor: 0.08     # Annual maintenance cost as fraction of hardware cost
+utilization_factor: 0.75     # Average cluster utilization
+network_cost: 4000.0         # Network infrastructure cost (USD)
+admin_cost_per_year: 8000.0  # System administrator cost per year (USD)
+currency: "USD"
+
+# Note: Since we're using a predefined node type (jetson_cluster), the following 
+# node configuration is informational only - it matches what's defined in the system.
+# These values are used automatically:
+#
+# Node configuration for jetson_cluster:
+# - cost: 800.0 USD per node
+# - power_watts: 30.0 watts per node
+# - has_gpu: true
+# - memory_gb: 16 GB per node
+# - cores: 8 CPU cores per node
+# - gpu_type: NVIDIA Orin
+# - gpus_per_node: 1

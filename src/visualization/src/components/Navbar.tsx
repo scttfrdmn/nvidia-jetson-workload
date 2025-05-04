@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2024 nvidia-jetson-workload contributors
+// Copyright 2025 Scott Friedman and Project Contributors
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -17,7 +17,8 @@ import {
   Science as NBodyIcon,
   Computer as ClusterIcon,
   Code as SlurmIcon,
-  Info as InfoIcon
+  Info as InfoIcon,
+  Speed as SpeedIcon
 } from '@mui/icons-material';
 
 const Navbar = () => {
@@ -36,6 +37,7 @@ const Navbar = () => {
     { text: 'Weather Simulation', icon: <WeatherIcon />, path: '/weather' },
     { text: 'Medical Imaging', icon: <MedicalIcon />, path: '/medical' },
     { text: 'N-Body Simulation', icon: <NBodyIcon />, path: '/nbody' },
+    { text: 'Benchmarks', icon: <SpeedIcon />, path: '/benchmarks' },
     { text: 'Cluster Status', icon: <ClusterIcon />, path: '/cluster' },
     { text: 'Slurm Jobs', icon: <SlurmIcon />, path: '/slurm' },
   ];

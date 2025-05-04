@@ -1,0 +1,166 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      workloads:
+        description: 'Workloads to deploy (comma-separated)'
+        required: false
+        default: 'all'
+        type: string
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      workloads: ${{ steps.set-workloads.outputs.workloads }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Set workloads to deploy
+        id: set-workloads
+        run: |
+          if [[ "${{ github.event.inputs.workloads }}" == "all" ]]; then
+            WORKLOADS='["nbody_sim", "molecular_dynamics", "weather_sim", "medical_imaging"]'
+          else
+            # Convert comma-separated string to JSON array
+            IFS=',' read -ra WORKLOAD_ARRAY <<< "${{ github.event.inputs.workloads }}"
+            WORKLOADS="["
+            for i in "${!WORKLOAD_ARRAY[@]}"; do
+              if [[ $i -gt 0 ]]; then
+                WORKLOADS="$WORKLOADS, "
+              fi
+              WORKLOADS="$WORKLOADS\"${WORKLOAD_ARRAY[$i]}\""
+            done
+            WORKLOADS="$WORKLOADS]"
+          fi
+          echo "workloads=$WORKLOADS" >> $GITHUB_OUTPUT
+  
+  build:
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        workload: ${{ fromJson(needs.prepare.outputs.workloads) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Set up CUDA
+        uses: Jimver/cuda-toolkit@v0.2.11
+        id: cuda-toolkit
+        with:
+          cuda: '12.0.0'
+          method: 'network'
+          sub-packages: '["nvcc", "cudart", "cublas", "cufft"]'
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake build-essential libboost-all-dev
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+      
+      - name: Build workload
+        run: |
+          if [[ "${{ matrix.workload }}" == "nbody_sim" ]]; then
+            cd src/nbody_sim/cpp
+            ./build_and_test.sh
+          elif [[ "${{ matrix.workload }}" == "molecular_dynamics" ]]; then
+            cd src/molecular-dynamics/cpp
+            ./build.sh
+          elif [[ "${{ matrix.workload }}" == "weather_sim" ]]; then
+            cd src/weather-sim/cpp
+            cmake -B build -S .
+            cmake --build build --parallel
+          elif [[ "${{ matrix.workload }}" == "medical_imaging" ]]; then
+            cd src/medical-imaging/cpp
+            cmake -B build -S .
+            cmake --build build --parallel
+          fi
+      
+      - name: Create deployment artifact
+        run: |
+          mkdir -p deploy/${{ matrix.workload }}
+          
+          # Copy relevant files for the workload
+          if [[ "${{ matrix.workload }}" == "nbody_sim" ]]; then
+            cp -r src/nbody_sim/cpp/build/bin/* deploy/${{ matrix.workload }}/
+            cp -r src/nbody_sim/python deploy/${{ matrix.workload }}/python
+          elif [[ "${{ matrix.workload }}" == "molecular_dynamics" ]]; then
+            cp -r src/molecular-dynamics/cpp/build/lib/* deploy/${{ matrix.workload }}/
+            cp -r src/molecular-dynamics/python deploy/${{ matrix.workload }}/python
+          elif [[ "${{ matrix.workload }}" == "weather_sim" ]]; then
+            cp -r src/weather-sim/cpp/build/lib/* deploy/${{ matrix.workload }}/
+            cp -r src/weather-sim/python deploy/${{ matrix.workload }}/python
+          elif [[ "${{ matrix.workload }}" == "medical_imaging" ]]; then
+            cp -r src/medical-imaging/cpp/build/lib/* deploy/${{ matrix.workload }}/
+            cp -r src/medical-imaging/python deploy/${{ matrix.workload }}/python
+          fi
+          
+          # Add deployment script
+          cp scripts/deploy.sh deploy/${{ matrix.workload }}/
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.workload }}-artifact
+          path: deploy/${{ matrix.workload }}
+  
+  deploy:
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    strategy:
+      matrix:
+        workload: ${{ fromJson(needs.prepare.outputs.workloads) }}
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ matrix.workload }}-artifact
+          path: deploy/${{ matrix.workload }}
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      
+      - name: Deploy to EC2
+        run: |
+          chmod +x deploy/${{ matrix.workload }}/deploy.sh
+          
+          # Deploy to appropriate environment
+          if [[ "${{ github.event.inputs.environment }}" == "staging" ]]; then
+            ./deploy/${{ matrix.workload }}/deploy.sh \
+              --instance ${{ secrets.STAGING_INSTANCE_ID }} \
+              --ssh-key "${{ secrets.SSH_PRIVATE_KEY }}" \
+              --workload ${{ matrix.workload }}
+          else
+            ./deploy/${{ matrix.workload }}/deploy.sh \
+              --instance ${{ secrets.PRODUCTION_INSTANCE_ID }} \
+              --ssh-key "${{ secrets.SSH_PRIVATE_KEY }}" \
+              --workload ${{ matrix.workload }}
+          fi
+      
+      - name: Post-deployment check
+        run: |
+          # Add checks to verify the deployment was successful
+          # For example, check if the service is running
+          echo "Deployment of ${{ matrix.workload }} to ${{ github.event.inputs.environment }} completed"

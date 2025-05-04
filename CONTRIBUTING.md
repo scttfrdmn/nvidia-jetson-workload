@@ -1,7 +1,7 @@
 # Contributing to NVIDIA Jetson Workload
 
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-<!-- Copyright 2024 nvidia-jetson-workload contributors -->
+<!-- Copyright 2025 Scott Friedman and Project Contributors -->
 
 We love your input! We want to make contributing to NVIDIA Jetson Workload as easy and transparent as possible, whether it's:
 

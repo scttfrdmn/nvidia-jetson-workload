@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2025 Scott Friedman and Project Contributors
+
+# High-end Slurm Cluster Configuration
+# This configuration describes a powerful research-grade Slurm cluster
+
+# Cluster Specification
+nodes: 16                     # Number of nodes in the cluster
+node_type: "highend_gpu"      # Type of nodes (basic_cpu, basic_gpu, highend_gpu, jetson_cluster, custom)
+power_cost: 0.11              # Cost per kWh in USD (lower due to bulk rate)
+amortization_period: 1095     # Hardware amortization period in days (3 years)
+maintenance_factor: 0.12      # Annual maintenance cost as fraction of hardware cost
+utilization_factor: 0.85      # Average cluster utilization (higher for a research cluster)
+network_cost: 25000.0         # Network infrastructure cost (USD)
+admin_cost_per_year: 120000.0 # System administrator cost per year (USD)
+currency: "USD"
+
+# Note: Since we're using a predefined node type (highend_gpu), the following 
+# node configuration is informational only - it matches what's defined in the system.
+# These values are used automatically:
+#
+# Node configuration for highend_gpu:
+# - cost: 6000.0 USD per node
+# - power_watts: 500.0 watts per node
+# - has_gpu: true
+# - memory_gb: 128 GB per node
+# - cores: 32 CPU cores per node
+# - gpu_type: NVIDIA A100
+# - gpus_per_node: 4

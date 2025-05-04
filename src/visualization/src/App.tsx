@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2024 nvidia-jetson-workload contributors
+// Copyright 2025 Scott Friedman and Project Contributors
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -16,6 +16,7 @@ import NBodyVisualization from './components/visualizations/NBodyVisualization';
 import WorkloadDetail from './components/WorkloadDetail';
 import ClusterStatus from './components/ClusterStatus';
 import SlurmPanel from './components/SlurmPanel';
+import BenchmarkResults from './components/BenchmarkResults';
 
 // Context
 import { WorkloadProvider } from './context/WorkloadContext';
@@ -87,6 +88,7 @@ function App() {
                 <Route path="/workload/:id" element={<WorkloadDetail />} />
                 <Route path="/cluster" element={<ClusterStatus />} />
                 <Route path="/slurm" element={<SlurmPanel />} />
+                <Route path="/benchmarks" element={<BenchmarkResults />} />
               </Routes>
             </Box>
           </Box>
