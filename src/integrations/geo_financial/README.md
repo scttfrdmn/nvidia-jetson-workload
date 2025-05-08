@@ -37,6 +37,16 @@ The integration includes the following components:
 - Utility functions for creating combined risk factors and interpolated surfaces
 - Statistical methods for modeling risk dependencies using copulas
 
+### `climate_risk_assessment` Module
+
+- `ClimateRiskAssessor`: Specialized class for assessing climate-related financial risks
+- `ClimateScenario`: Standardized climate scenarios (IPCC SSPs, NGFS scenarios)
+- `TimeHorizon`: Different time horizons for climate projections (short, medium, long-term)
+- `ClimateHazardType`: Types of physical climate hazards (flooding, heat stress, etc.)
+- `TransitionRiskType`: Types of climate transition risks (policy, legal, market, etc.)
+- Utility functions for creating specialized climate risk factors
+- Methods for scenario-based analysis and climate-adjusted Value-at-Risk (VaR)
+
 ### `data_connectors` Module
 
 - `AssetLocationDataLoader`: Loads financial asset data with geospatial locations
@@ -107,6 +117,27 @@ This script provides examples of:
 - Performing sensitivity analysis on risk factors
 - Generating risk surfaces through interpolation
 - Creating advanced visualizations of risk analysis results
+
+#### Climate Risk Analysis
+
+The `examples/climate_risk_analysis.py` script demonstrates how to assess climate-related financial risks:
+
+```bash
+python -m src.integrations.geo_financial.examples.climate_risk_analysis \
+  --data-dir data/geo_financial \
+  --output-dir results/geo_financial/climate \
+  --device-id 0 \
+  --num-assets 30 \
+  --seed 42
+```
+
+This script provides examples of:
+- Creating climate hazard risk factors (flooding, heat stress, sea level rise) 
+- Comparing risks across different climate scenarios (SSPs, NGFS)
+- Assessing risks over multiple time horizons (short, medium, long-term)
+- Evaluating both physical and transition climate risks
+- Calculating climate-adjusted Value-at-Risk (VaR)
+- Visualizing climate risk impacts on sector-based portfolios
 
 ### Python API
 
@@ -202,11 +233,16 @@ risk_model.add_risk_factor(combined_risk)
 
 The integration is useful for various applications:
 
-- **Insurance Companies**: Assess risk exposure to natural disasters (floods, earthquakes, landslides)
+- **Insurance Companies**: Assess risk exposure to natural disasters and climate hazards
 - **Real Estate Investment Trusts (REITs)**: Optimize property portfolios based on geospatial risks
 - **Infrastructure Investors**: Evaluate project locations considering environmental hazards
 - **Asset Managers**: Incorporate climate change risks into investment decisions
 - **Government Agencies**: Allocate resources for disaster mitigation and resilience
+- **Banks and Financial Institutions**: Perform climate stress testing and scenario analysis
+- **Pension Funds**: Evaluate long-term climate risks in investment portfolios
+- **ESG Investors**: Assess physical and transition climate risks in sustainability-focused portfolios
+- **Regulatory Compliance**: Meet emerging climate risk disclosure requirements (TCFD, etc.)
+- **Credit Rating Agencies**: Incorporate climate factors into credit risk assessments
 
 ## GPU Acceleration
 
