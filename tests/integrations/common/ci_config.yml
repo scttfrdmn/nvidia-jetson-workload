@@ -1,0 +1,97 @@
+name: Integration Tests for Data Transfer Utilities
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/integrations/common/**'
+      - 'tests/integrations/common/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/integrations/common/**'
+      - 'tests/integrations/common/**'
+
+jobs:
+  cpu-tests:
+    runs-on: ubuntu-latest
+    name: CPU Integration Tests
+    strategy:
+      matrix:
+        python-version: [3.10]
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest numpy
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    
+    - name: Run CPU integration tests
+      run: |
+        cd tests/integrations/common
+        ./run_tests.py --cpu-only -v
+  
+  gpu-tests:
+    runs-on: ubuntu-latest
+    name: GPU Integration Tests
+    strategy:
+      matrix:
+        python-version: [3.10]
+    
+    # Comment out if you don't have GPU available in CI
+    # runs-on: [self-hosted, gpu]
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest numpy
+        # Install cupy if GPU available
+        # pip install cupy-cuda11x  # Match CUDA version
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    
+    - name: Run GPU integration tests
+      run: |
+        cd tests/integrations/common
+        # Skip GPU tests by default in CI until GPU runners are configured
+        echo "GPU tests would run here. Currently skipped in CI."
+        # ./run_tests.py --gpu-only -v
+    
+  jetson-tests:
+    # This job is configured to run on Jetson hardware
+    # It requires self-hosted runners on Jetson devices
+    runs-on: [self-hosted, jetson]
+    name: Jetson Integration Tests
+    
+    # Comment out until Jetson runners are configured
+    if: false
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install dependencies
+      run: |
+        python3 -m pip install --upgrade pip
+        pip3 install pytest numpy
+        # Install Jetson-specific dependencies if needed
+        if [ -f requirements-jetson.txt ]; then pip3 install -r requirements-jetson.txt; fi
+    
+    - name: Run integration tests on Jetson
+      run: |
+        cd tests/integrations/common
+        ./run_tests.py -v
