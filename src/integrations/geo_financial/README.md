@@ -23,6 +23,9 @@ The Geospatial Financial Risk Analysis integration enables:
 - Real-time monitoring of market data and geospatial events
 - Continuous risk assessment with streaming data
 - Dynamic risk visualization and alerting
+- Multi-region comparative risk analysis
+- Cross-region diversification benefit calculation
+- Region-based portfolio optimization and allocation
 
 ## Key Components
 
@@ -100,6 +103,16 @@ The integration includes the following components:
 - Configurable update intervals and streaming parameters
 - Support for both interactive and headless operation
 - Event detection and notification system
+
+### `multiregion_analysis` Module
+
+- `RegionDefinition`: Defines geographic regions for comparative analysis
+- `RegionalPortfolio`: Portfolio extension with region-based asset classification
+- `MultiRegionRiskModel`: Risk model that spans multiple geographic regions
+- `RegionalRiskComparator`: Statistical analysis of risks across regions
+- `MultiRegionVisualizer`: Advanced visualizations for comparing regional risks
+- Diversification benefit calculation and allocation optimization
+- Cross-region risk correlation analysis
 
 ## Usage
 
@@ -237,6 +250,26 @@ This example demonstrates how to:
 - Monitor risk changes in response to market and geospatial events
 - Generate visualizations at regular intervals
 - Set up risk-based alerts
+
+#### Multi-Region Analysis
+
+For comparing risk factors and portfolio performance across different geographic regions:
+
+```bash
+python -m src.integrations.geo_financial.examples.multiregion_analysis \
+  --data-dir data/geo_financial/multiregion \
+  --output-dir results/geo_financial/multiregion \
+  --generate-data \
+  --num-regions 4 \
+  --assets-per-region 25
+```
+
+This example demonstrates:
+- Region-based portfolio organization and analysis
+- Cross-region risk comparison and correlation analysis
+- Portfolio diversification benefit calculation
+- Optimal regional allocation determination
+- Comprehensive multi-region visualization dashboard
 
 ### Python API
 

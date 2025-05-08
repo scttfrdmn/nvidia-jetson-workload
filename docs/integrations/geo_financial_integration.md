@@ -203,6 +203,33 @@ For a fully interactive experience, launch the real-time dashboard:
 ./scripts/run_realtime_dashboard.sh --generate-data --port 8050
 ```
 
+### 5. Multi-Region Risk Analysis
+
+This tutorial demonstrates how to perform comparative analysis across different geographic regions:
+
+1. **Define Regions**: Create multiple geographic regions for analysis
+2. **Allocate Assets**: Assign assets to appropriate regions
+3. **Perform Region-Specific Analysis**: Calculate risk metrics for each region
+4. **Compare Across Regions**: Analyze regional differences and correlations
+5. **Optimize Allocation**: Determine optimal allocation across regions
+
+Run the multi-region analysis example:
+
+```bash
+python -m src.integrations.geo_financial.examples.multiregion_analysis \
+  --data-dir data/geo_financial/multiregion \
+  --output-dir results/geo_financial/multiregion \
+  --generate-data \
+  --num-regions 4 \
+  --assets-per-region 25
+```
+
+This example demonstrates region-based:
+- Risk distribution analysis
+- Cross-region correlations
+- Diversification benefits
+- Optimal portfolio allocation
+
 ## Advanced Usage
 
 ### Custom Risk Factors
@@ -344,6 +371,15 @@ adjusted_risk = assessor.adjust_risk_by_scenario(
 - `MarketDataStream`: Provides real-time market data
 - `GeospatialEventStream`: Streams real-time geospatial events
 - Helper functions for creating and configuring data streams
+
+#### Multi-region Module
+
+- `RegionDefinition`: Defines a geographic region for analysis
+- `RegionalPortfolio`: Extends portfolio to separate assets by region
+- `MultiRegionRiskModel`: Applies risk models across multiple regions
+- `RegionalRiskComparator`: Compares risk characteristics across regions
+- `MultiRegionVisualizer`: Creates region-based visualizations
+- Helper functions for creating region grids and regional portfolios
 
 See the [API Reference](./api_reference.md) for detailed documentation of all classes and methods.
 
