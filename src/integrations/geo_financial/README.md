@@ -18,8 +18,11 @@ The Geospatial Financial Risk Analysis integration enables:
 - Sensitivity analysis for risk factors
 - Risk surface interpolation from point data
 - Climate risk assessment with standardized scenarios (IPCC, NGFS)
-- Physical and transition climate risk evaluation
+- Physical and transition climate risk evaluation 
 - Interactive dashboards for portfolio risk analysis and optimization
+- Real-time monitoring of market data and geospatial events
+- Continuous risk assessment with streaming data
+- Dynamic risk visualization and alerting
 
 ## Key Components
 
@@ -80,6 +83,23 @@ The integration includes the following components:
 - Creates digital elevation models (DEMs) with realistic terrain features
 - Generates asset location data with sector-based distributions
 - Produces correlated financial returns data by sector
+
+### `realtime_data` Module
+
+- `RealTimeStreamManager`: Manages multiple real-time data streams
+- `RealTimeRiskAnalyzer`: Updates risk assessments based on streaming data
+- `MarketDataStream`: Provides real-time market data for financial assets
+- `GeospatialEventStream`: Streams real-time geospatial events (floods, wildfires, etc.)
+- Utilities for creating and configuring data streams
+- Support for both actual and simulated data sources
+
+### `realtime_dashboard` Module
+
+- `RealTimeDashboardApp`: Interactive dashboard for real-time risk monitoring
+- Live visualization of risk maps, trends, and events
+- Configurable update intervals and streaming parameters
+- Support for both interactive and headless operation
+- Event detection and notification system
 
 ## Usage
 
@@ -184,6 +204,39 @@ python -m src.integrations.geo_financial.dashboard_app \
   --headless \
   --output-dir results/geo_financial/dashboard
 ```
+
+#### Real-time Dashboard and Monitoring
+
+For continuous real-time risk monitoring with a fully interactive dashboard:
+
+```bash
+./scripts/run_realtime_dashboard.sh --generate-data --port 8050
+```
+
+The real-time dashboard includes all the features of the standard dashboard, plus:
+- Live market data streams for financial assets
+- Real-time geospatial event monitoring (floods, wildfires, etc.)
+- Continuous risk assessment updates
+- Dynamic portfolio risk visualization
+- Event notifications and alerts
+
+For headless real-time monitoring (suitable for automated analysis):
+
+```bash
+python -m src.integrations.geo_financial.examples.realtime_monitoring \
+  --data-dir data/geo_financial \
+  --output-dir results/geo_financial/realtime_monitor \
+  --generate-data \
+  --duration 900 \
+  --visualization-interval 180
+```
+
+This example demonstrates how to:
+- Configure and manage real-time data streams
+- Connect streaming data to risk models
+- Monitor risk changes in response to market and geospatial events
+- Generate visualizations at regular intervals
+- Set up risk-based alerts
 
 ### Python API
 

@@ -115,6 +115,7 @@ The integration provides utilities for creating risk factors from various data s
 - Slope and aspect data
 - Distance to features (coastlines, rivers, etc.)
 - Climate and weather data
+- Real-time event data streams
 
 ### Risk Aggregation
 
@@ -175,6 +176,32 @@ Learn how to use the interactive dashboard for geospatial financial risk analysi
 4. **Explore Results**: Interact with visualizations and optimization tools
 
 See the [Dashboard Tutorial](../notebooks/dashboard_tutorial.ipynb) for instructions.
+
+### 4. Real-Time Risk Monitoring
+
+This tutorial shows how to use real-time data streaming for continuous risk monitoring:
+
+1. **Set Up Data Streams**: Configure market data and geospatial event streams
+2. **Connect to Risk Model**: Link streaming data to your risk assessment model
+3. **Monitor Risk Changes**: Track how risk evolves in response to events
+4. **Create Alerts**: Set up notifications for significant risk changes
+
+Run the realtime monitoring example:
+
+```bash
+python -m src.integrations.geo_financial.examples.realtime_monitoring \
+  --data-dir data/geo_financial \
+  --output-dir results/geo_financial/realtime_monitor \
+  --generate-data \
+  --duration 900 \
+  --visualization-interval 180
+```
+
+For a fully interactive experience, launch the real-time dashboard:
+
+```bash
+./scripts/run_realtime_dashboard.sh --generate-data --port 8050
+```
 
 ## Advanced Usage
 
@@ -309,6 +336,14 @@ adjusted_risk = assessor.adjust_risk_by_scenario(
 - `DashboardApp`: Interactive dashboard application
 
 ### Key Classes and Methods
+
+#### Real-time Module
+
+- `RealTimeStreamManager`: Manages multiple real-time data streams
+- `RealTimeRiskAnalyzer`: Updates risk assessments based on streaming data
+- `MarketDataStream`: Provides real-time market data
+- `GeospatialEventStream`: Streams real-time geospatial events
+- Helper functions for creating and configuring data streams
 
 See the [API Reference](./api_reference.md) for detailed documentation of all classes and methods.
 
