@@ -26,6 +26,9 @@ The Geospatial Financial Risk Analysis integration enables:
 - Multi-region comparative risk analysis
 - Cross-region diversification benefit calculation
 - Region-based portfolio optimization and allocation
+- Scenario-based analysis and stress testing
+- Comparative evaluation of different future scenarios
+- Economic impact assessment under various scenarios
 
 ## Key Components
 
@@ -113,6 +116,17 @@ The integration includes the following components:
 - `MultiRegionVisualizer`: Advanced visualizations for comparing regional risks
 - Diversification benefit calculation and allocation optimization
 - Cross-region risk correlation analysis
+
+### `scenario_analysis` Module
+
+- `Scenario`: Defines a specific set of conditions for analysis
+- `ScenarioSet`: Collection of scenarios for comparative analysis
+- `ScenarioAnalyzer`: Analyzes portfolios under different scenarios
+- `ScenarioVisualizer`: Creates visualizations of scenario analysis results
+- Utility functions for creating climate, economic, and stress test scenarios
+- Sensitivity analysis for key parameters
+- Stress testing with individual and combined scenarios
+- Economic impact assessment across different scenarios
 
 ## Usage
 
@@ -270,6 +284,23 @@ This example demonstrates:
 - Portfolio diversification benefit calculation
 - Optimal regional allocation determination
 - Comprehensive multi-region visualization dashboard
+
+#### Scenario Analysis and Stress Testing
+
+For conducting scenario-based analysis and stress testing of portfolios:
+
+```bash
+python -m src.integrations.geo_financial.examples.scenario_analysis \
+  --output-dir results/geo_financial/scenarios
+```
+
+This example demonstrates:
+- Creating and analyzing different types of scenarios (climate, economic, stress)
+- Comparing portfolio performance across scenarios
+- Conducting sensitivity analysis for key parameters
+- Performing stress testing with individual and combined scenarios
+- Creating comprehensive scenario analysis dashboards
+- Analyzing economic impacts of different scenarios
 
 ### Python API
 

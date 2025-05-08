@@ -152,6 +152,12 @@ Copyright 2025 Scott Friedman and Project Contributors
   - Portfolio optimization for minimizing geospatial risk
   - Data connectors for joining geospatial and financial data
   - Comprehensive visualization dashboard
+  - Scenario-based analysis capabilities:
+    - Multiple scenario types (climate, economic, regulatory, stress test)
+    - Scenario comparison and visualization tools
+    - Sensitivity analysis and stress testing functions
+    - Economic impact assessment at varying geographic scales
+    - Interactive scenario creation and modification
 - Full GPU acceleration with adaptability pattern
 - Jupyter notebook demonstrating the complete analysis workflow
 - Applications:
@@ -159,6 +165,8 @@ Copyright 2025 Scott Friedman and Project Contributors
   - Real estate investment trusts (REITs) optimizing property portfolios
   - Infrastructure investors evaluating project locations
   - Asset managers incorporating climate change risks into investment decisions
+  - Regulators conducting stress tests under different economic scenarios
+  - Government agencies assessing regional economic resilience
 
 ### 2. Medical-Weather Integration for Climate-Health Impact Analysis
 - Integration between Medical Imaging and Weather Simulation workloads
