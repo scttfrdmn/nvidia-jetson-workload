@@ -17,6 +17,9 @@ The Geospatial Financial Risk Analysis integration enables:
 - Advanced risk aggregation using copulas and other statistical methods
 - Sensitivity analysis for risk factors
 - Risk surface interpolation from point data
+- Climate risk assessment with standardized scenarios (IPCC, NGFS)
+- Physical and transition climate risk evaluation
+- Interactive dashboards for portfolio risk analysis and optimization
 
 ## Key Components
 
@@ -46,6 +49,16 @@ The integration includes the following components:
 - `TransitionRiskType`: Types of climate transition risks (policy, legal, market, etc.)
 - Utility functions for creating specialized climate risk factors
 - Methods for scenario-based analysis and climate-adjusted Value-at-Risk (VaR)
+
+### `dashboard_app` Module
+
+- Interactive web-based dashboard for geospatial financial risk analysis
+- Configurable climate scenarios and time horizons for risk assessment
+- Portfolio optimization with risk-adjusted weights
+- Climate scenario comparison and stress testing
+- Integration of physical and transition climate risks
+- Export capabilities for results and visualizations
+- Headless operation mode for automated reporting
 
 ### `data_connectors` Module
 
@@ -138,6 +151,39 @@ This script provides examples of:
 - Evaluating both physical and transition climate risks
 - Calculating climate-adjusted Value-at-Risk (VaR)
 - Visualizing climate risk impacts on sector-based portfolios
+
+#### Interactive Dashboard
+
+The `dashboard_app.py` script provides an interactive dashboard for geospatial financial risk analysis:
+
+```bash
+python -m src.integrations.geo_financial.dashboard_app \
+  --data-dir data/geo_financial \
+  --output-dir results/geo_financial/dashboard \
+  --device-id 0 \
+  --generate-data \
+  --num-assets 30
+```
+
+This dashboard application includes:
+- Interactive visualization of geospatial risk factors and asset exposures
+- Portfolio optimization with risk-adjusted weights
+- Climate scenario analysis with configurable parameters
+- Comparison of physical and transition climate risks by sector
+- Climate-adjusted financial metrics and Value-at-Risk (VaR)
+- Ability to export results and visualizations
+
+The dashboard requires additional Python packages:
+```bash
+pip install dash dash-bootstrap-components plotly
+```
+
+For headless operation (generating data and visualizations without launching the dashboard):
+```bash
+python -m src.integrations.geo_financial.dashboard_app \
+  --headless \
+  --output-dir results/geo_financial/dashboard
+```
 
 ### Python API
 
