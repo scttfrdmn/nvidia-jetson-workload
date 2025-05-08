@@ -1,0 +1,171 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2025 Scott Friedman and Project Contributors
+
+# Benchmark configuration for Financial Modeling workload
+
+workload: financial_modeling
+
+# Device configuration
+device_id: 0  # Use first GPU; -1 for CPU only
+
+# Common benchmark parameters
+iterations: 10
+warmup_iterations: 2
+print_output: false
+save_results: true
+time_limit: 300  # Maximum run time in seconds
+
+# Risk metrics benchmark parameters
+risk_metrics:
+  # Data size presets
+  sizes:
+    small:
+      num_assets: 50
+      num_days: 252  # 1 year of daily returns
+      var_confidence_levels: [0.95, 0.99]
+      monte_carlo_samples: 1000
+    medium:
+      num_assets: 100
+      num_days: 756  # 3 years of daily returns
+      var_confidence_levels: [0.90, 0.95, 0.99]
+      monte_carlo_samples: 5000
+    large:
+      num_assets: 500
+      num_days: 1260  # 5 years of daily returns
+      var_confidence_levels: [0.90, 0.95, 0.975, 0.99, 0.995]
+      monte_carlo_samples: 10000
+  
+  # Test parameters
+  tests:
+    var_calculation:
+      enabled: true
+      description: "Value at Risk (VaR) calculation"
+    cvar_calculation:
+      enabled: true
+      description: "Conditional Value at Risk (CVaR) calculation"
+    volatility:
+      enabled: true
+      description: "Volatility and covariance matrix calculation"
+    monte_carlo_var:
+      enabled: true
+      description: "Monte Carlo VaR simulation"
+    risk_attribution:
+      enabled: true
+      description: "Risk attribution by factor"
+
+# Options pricing benchmark parameters
+options_pricing:
+  # Data size presets
+  sizes:
+    small:
+      num_options: 100
+      num_time_steps: 100
+      monte_carlo_paths: 1000
+    medium:
+      num_options: 500
+      num_time_steps: 250
+      monte_carlo_paths: 5000
+    large:
+      num_options: 2500
+      num_time_steps: 500
+      monte_carlo_paths: 10000
+  
+  # Test parameters
+  tests:
+    black_scholes:
+      enabled: true
+      description: "Black-Scholes option pricing"
+    monte_carlo:
+      enabled: true
+      description: "Monte Carlo option pricing"
+    binomial_tree:
+      enabled: true
+      description: "Binomial tree option pricing"
+    greeks_calculation:
+      enabled: true
+      description: "Option Greeks calculation"
+    exotic_options:
+      enabled: true
+      description: "Exotic options pricing (barrier, Asian)"
+
+# Portfolio optimization benchmark parameters
+portfolio_optimization:
+  # Data size presets
+  sizes:
+    small:
+      num_assets: 50
+      num_days: 252
+      monte_carlo_simulations: 1000
+      efficient_frontier_points: 20
+    medium:
+      num_assets: 100
+      num_days: 756
+      monte_carlo_simulations: 5000
+      efficient_frontier_points: 50
+    large:
+      num_assets: 500
+      num_days: 1260
+      monte_carlo_simulations: 10000
+      efficient_frontier_points: 100
+  
+  # Test parameters
+  tests:
+    mean_variance:
+      enabled: true
+      description: "Mean-variance portfolio optimization"
+    efficient_frontier:
+      enabled: true
+      description: "Efficient frontier generation"
+    risk_parity:
+      enabled: true
+      description: "Risk parity portfolio construction"
+    monte_carlo_simulation:
+      enabled: true
+      description: "Monte Carlo portfolio simulation"
+    black_litterman:
+      enabled: true
+      description: "Black-Litterman portfolio optimization"
+
+# Performance test preset (used when size is specified but not configured for a specific test)
+default_size: medium
+
+# Cost modeling parameters
+cost_modeling:
+  enabled: true
+  cloud_providers:
+    aws:
+      instance_types:
+        - g4dn.xlarge
+        - g5g.xlarge
+        - p3.2xlarge
+      pricing:
+        g4dn.xlarge: 0.526  # USD per hour
+        g5g.xlarge: 0.42    # USD per hour
+        p3.2xlarge: 3.06    # USD per hour
+    azure:
+      instance_types:
+        - Standard_NC4as_T4_v3
+        - Standard_NC4s_v3
+      pricing:
+        Standard_NC4as_T4_v3: 0.56  # USD per hour
+        Standard_NC4s_v3: 3.06      # USD per hour
+    gcp:
+      instance_types:
+        - n1-standard-4-t4
+        - n1-standard-4-v100
+      pricing:
+        n1-standard-4-t4: 0.63    # USD per hour
+        n1-standard-4-v100: 2.48  # USD per hour
+  on_prem:
+    jetson_orin:
+      cost: 499.00  # USD (one-time cost)
+      power_consumption: 25  # watts
+      electricity_cost: 0.15  # USD per kWh
+      lifecycle: 36  # months
+    aws_graviton:
+      cost: 0.42  # USD per hour (g5g.xlarge)
+      spot_price: 0.126  # USD per hour (spot instance)
+  comparison:
+    run_duration: 24  # hours
+    days_per_month: 30
+    months: 36
